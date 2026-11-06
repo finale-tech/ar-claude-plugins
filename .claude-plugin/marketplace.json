@@ -1,0 +1,24 @@
+{
+  "name": "arnaud-plugins",
+  "owner": {
+    "name": "Arnaud"
+  },
+  "plugins": [
+    {
+      "name": "advisor",
+      "source": "./advisor"
+    },
+    {
+      "name": "dev-tools",
+      "source": "./dev-tools"
+    },
+    {
+      "name": "diagram-docs",
+      "source": "./diagram-docs"
+    },
+    {
+      "name": "transcript",
+      "source": "./transcript"
+    }
+  ]
+}

@@ -1,0 +1,362 @@
+#!/usr/bin/env python3
+"""pr-review-cli: the review-pr skill's only path for GitHub writes.
+
+  python3 pr-review-cli [--host HOST] diff   OWNER/REPO N
+  python3 pr-review-cli [--host HOST] list   OWNER/REPO N
+  python3 pr-review-cli [--host HOST] create OWNER/REPO N --comments-file FILE [--dry-run]
+  python3 pr-review-cli [--host HOST] delete OWNER/REPO N REVIEW_ID
+
+diff    Print the PR's patch with old/new line numbers in the margin. This is
+        the source of truth for comment line numbers.
+list    Print the PR's reviews (yours include any PENDING draft).
+create  Create a PENDING (draft) review from a comments JSON file. Every
+        comment is checked against the PR diff first; nothing is posted
+        unless all of them are valid. The draft stays private until you
+        submit it in the GitHub UI or your IDE. There is no --body option
+        and no way to submit, approve or request changes from here.
+delete  Delete one of your PENDING reviews (refuses submitted reviews).
+
+Comments JSON: an array of objects with
+  path, body                       always
+  line, side                       line comment (side RIGHT or LEFT)
+  start_line, start_side           optional, for a multi-line range
+  subject_type: "file"             file-level comment (no line/side)
+
+All requests go through `gh api`, so gh's login is used (gh auth login).
+Requires Python 3.8+ and gh 2.48+.
+"""
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+
+HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
+ALLOWED_KEYS = {"path", "body", "line", "side", "start_line", "start_side", "subject_type"}
+
+
+class CliError(Exception):
+    pass
+
+
+# ---------------------------------------------------------------- gh transport
+
+def gh(host, args, payload=None):
+    cmd = ["gh", "api", "--hostname", host] + list(args)
+    if payload is not None:
+        cmd += ["--input", "-"]
+    try:
+        proc = subprocess.run(
+            cmd,
+            input=json.dumps(payload) if payload is not None else None,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
+        )
+    except FileNotFoundError:
+        raise CliError("gh is not installed or not on PATH.")
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout).strip()
+        raise CliError("gh api %s failed: %s" % (" ".join(args), detail))
+    out = proc.stdout.strip()
+    return json.loads(out) if out else None
+
+
+def gh_list(host, path):
+    sep = "&" if "?" in path else "?"
+    pages = gh(host, ["--paginate", "--slurp", path + sep + "per_page=100"])
+    items = []
+    for page in pages or []:
+        items.extend(page)
+    return items
+
+
+def graphql(host, query, variables):
+    data = gh(host, ["graphql"], {"query": query, "variables": variables})
+    if data and data.get("errors"):
+        raise CliError("GraphQL error: " + "; ".join(e.get("message", str(e)) for e in data["errors"]))
+    return data["data"]
+
+
+# ---------------------------------------------------------------- diff model
+
+def parse_patch(patch):
+    """Yield (kind, old, new, hunk_index, text). kind: '@', ' ', '+', '-'."""
+    old = new = 0
+    hunk = -1
+    for raw in patch.split("\n"):
+        m = HUNK_RE.match(raw)
+        if m:
+            hunk += 1
+            old, new = int(m.group(1)), int(m.group(3))
+            yield "@", None, None, hunk, raw
+            continue
+        if hunk < 0 or raw.startswith("\\"):
+            continue
+        tag, text = (raw[:1] or " "), raw[1:]
+        if tag == "+":
+            yield "+", None, new, hunk, text
+            new += 1
+        elif tag == "-":
+            yield "-", old, None, hunk, text
+            old += 1
+        else:
+            yield " ", old, new, hunk, text
+            old += 1
+            new += 1
+
+
+def commentable(files):
+    """path -> {"RIGHT": {line: hunk}, "LEFT": {line: hunk}, "patch": bool}"""
+    index = {}
+    for f in files:
+        entry = {"RIGHT": {}, "LEFT": {}, "patch": bool(f.get("patch"))}
+        for kind, old, new, hunk, _ in parse_patch(f.get("patch") or ""):
+            if kind in "+ " and new is not None:
+                entry["RIGHT"][new] = hunk
+            if kind in "- " and old is not None:
+                entry["LEFT"][old] = hunk
+        index[f["filename"]] = entry
+    return index
+
+
+def fetch_pr(host, repo, n):
+    pr = gh(host, ["repos/%s/pulls/%d" % (repo, n)])
+    files = gh_list(host, "repos/%s/pulls/%d/files" % (repo, n))
+    return pr, files
+
+
+# ---------------------------------------------------------------- commands
+
+def cmd_diff(args):
+    pr, files = fetch_pr(args.host, args.repo, args.number)
+    print("PR %s#%d head=%s base=%s files=%d" % (
+        args.repo, args.number, pr["head"]["sha"][:12], pr["base"]["ref"], len(files)))
+    print("Margin: OLD (LEFT) line, NEW (RIGHT) line. Comment on added/context lines with")
+    print('side RIGHT + the NEW number; on deleted lines with side LEFT + the OLD number.')
+    for f in files:
+        status = f.get("status", "modified")
+        if status == "renamed" and f.get("previous_filename"):
+            status += " from " + f["previous_filename"]
+        print()
+        print("=== %s (%s) +%s -%s" % (f["filename"], status, f.get("additions", 0), f.get("deletions", 0)))
+        if not f.get("patch"):
+            print('    (no patch from GitHub: binary or too large; use subject_type "file" only)')
+            continue
+        for kind, old, new, _, text in parse_patch(f["patch"]):
+            if kind == "@":
+                print(text)
+            else:
+                print("%6s %6s %s %s" % (old if old is not None else "", new if new is not None else "", kind, text))
+    return 0
+
+
+def cmd_list(args):
+    reviews = gh_list(args.host, "repos/%s/pulls/%d/reviews" % (args.repo, args.number))
+    if not reviews:
+        print("No reviews on %s#%d." % (args.repo, args.number))
+        return 0
+    pending = []
+    for r in reviews:
+        user = (r.get("user") or {}).get("login", "?")
+        print("REVIEW id=%s state=%s user=%s submitted=%s" % (
+            r["id"], r["state"], user, r.get("submitted_at") or "-"))
+        if r["state"] == "PENDING":
+            pending.append(r["id"])
+    for rid in pending:
+        print("PENDING draft: id=%s (delete with: python3 %s --host %s delete %s %d %s)" % (
+            rid, sys.argv[0], args.host, args.repo, args.number, rid))
+    return 0
+
+
+def load_comments(path):
+    try:
+        with open(path) as fh:
+            data = json.load(fh)
+    except (OSError, ValueError) as exc:
+        raise CliError("cannot read comments file %s: %s" % (path, exc))
+    if not isinstance(data, list):
+        raise CliError("comments file must hold a JSON array.")
+    return data
+
+
+def validate(comments, index):
+    errors = []
+    for i, c in enumerate(comments, 1):
+        where = "comment %d" % i
+        if not isinstance(c, dict):
+            errors.append("%s: not an object" % where)
+            continue
+        extra = set(c) - ALLOWED_KEYS
+        if extra:
+            errors.append("%s: unknown key(s) %s" % (where, ", ".join(sorted(extra))))
+        path, body = c.get("path"), c.get("body")
+        if isinstance(path, str):
+            where += " (%s)" % path
+        if not isinstance(body, str) or not body.strip():
+            errors.append("%s: missing or empty body" % where)
+        if not isinstance(path, str) or path not in index:
+            errors.append("%s: path is not a file changed in this PR" % where)
+            continue
+        entry = index[path]
+        subject = c.get("subject_type", "line")
+        if subject == "file":
+            stray = [k for k in ("line", "side", "start_line", "start_side") if k in c]
+            if stray:
+                errors.append("%s: file-level comment must not have %s" % (where, ", ".join(stray)))
+            continue
+        if subject != "line":
+            errors.append('%s: subject_type must be "file" or "line"' % where)
+            continue
+        if not entry["patch"]:
+            errors.append('%s: GitHub shows no patch for this file; use subject_type "file"' % where)
+            continue
+        line, side = c.get("line"), c.get("side")
+        if not isinstance(line, int) or isinstance(line, bool) or line < 1:
+            errors.append("%s: line must be a positive integer" % where)
+            continue
+        if side not in ("RIGHT", "LEFT"):
+            errors.append('%s: side must be "RIGHT" or "LEFT"' % where)
+            continue
+        if line not in entry[side]:
+            errors.append("%s: line %d is not on the %s side of the diff (see the diff command)" % (where, line, side))
+            continue
+        if "start_line" in c or "start_side" in c:
+            start, sside = c.get("start_line"), c.get("start_side")
+            if not isinstance(start, int) or isinstance(start, bool) or sside not in ("RIGHT", "LEFT"):
+                errors.append("%s: a range needs integer start_line and start_side RIGHT/LEFT" % where)
+                continue
+            if start not in entry[sside]:
+                errors.append("%s: start_line %d is not on the %s side of the diff" % (where, start, sside))
+                continue
+            if sside == side and start >= line:
+                errors.append("%s: start_line must be below line" % where)
+                continue
+            if entry[sside][start] != entry[side][line]:
+                errors.append("%s: start_line and line are in different diff hunks" % where)
+    return errors
+
+
+def to_thread_input(review_node_id, c):
+    item = {"pullRequestReviewId": review_node_id, "path": c["path"], "body": c["body"]}
+    if c.get("subject_type") == "file":
+        item["subjectType"] = "FILE"
+        return item
+    item.update({"subjectType": "LINE", "line": c["line"], "side": c["side"]})
+    if "start_line" in c:
+        item.update({"startLine": c["start_line"], "startSide": c["start_side"]})
+    return item
+
+
+ADD_REVIEW = """
+mutation($pr: ID!, $sha: GitObjectID!) {
+  addPullRequestReview(input: {pullRequestId: $pr, commitOID: $sha}) {
+    pullRequestReview { id databaseId state url }
+  }
+}"""
+
+ADD_THREAD = """
+mutation($input: AddPullRequestReviewThreadInput!) {
+  addPullRequestReviewThread(input: $input) {
+    thread { comments(first: 1) { nodes { databaseId url } } }
+  }
+}"""
+
+
+def cmd_create(args):
+    comments = load_comments(args.comments_file)
+    if not comments:
+        raise CliError("comments file is empty; nothing to post.")
+    pr, files = fetch_pr(args.host, args.repo, args.number)
+    errors = validate(comments, commentable(files))
+    if errors:
+        sys.stderr.write("Nothing posted. %d invalid comment(s):\n" % len(errors))
+        for e in errors:
+            sys.stderr.write("  - %s\n" % e)
+        return 1
+    if pr.get("state") != "open":
+        raise CliError("PR %s#%d is %s; drafts can only be added to open PRs." % (args.repo, args.number, pr.get("state")))
+
+    viewer = gh(args.host, ["user"])["login"]
+    reviews = gh_list(args.host, "repos/%s/pulls/%d/reviews" % (args.repo, args.number))
+    for r in reviews:
+        if r["state"] == "PENDING" and (r.get("user") or {}).get("login") == viewer:
+            raise CliError("you already have a PENDING review (id=%s) on this PR; GitHub allows one. "
+                           "Delete it first: python3 %s --host %s delete %s %d %s"
+                           % (r["id"], sys.argv[0], args.host, args.repo, args.number, r["id"]))
+
+    file_level = sum(1 for c in comments if c.get("subject_type") == "file")
+    if args.dry_run:
+        print("DRY RUN: %d comment(s) valid (%d line, %d file-level) against head %s. Nothing posted."
+              % (len(comments), len(comments) - file_level, file_level, pr["head"]["sha"][:12]))
+        return 0
+
+    review = graphql(args.host, ADD_REVIEW, {"pr": pr["node_id"], "sha": pr["head"]["sha"]})
+    review = review["addPullRequestReview"]["pullRequestReview"]
+    review_id = review["databaseId"]
+    print("Pending review created: id=%s" % review_id)
+
+    posted = 0
+    for c in comments:
+        try:
+            graphql(args.host, ADD_THREAD, {"input": to_thread_input(review["id"], c)})
+        except CliError as exc:
+            sys.stderr.write("Failed on comment %d (%s): %s\n" % (posted + 1, c["path"], exc))
+            sys.stderr.write("The draft holds %d of %d comments. Delete it and re-run create:\n" % (posted, len(comments)))
+            sys.stderr.write("  python3 %s --host %s delete %s %d %s\n" % (sys.argv[0], args.host, args.repo, args.number, review_id))
+            return 1
+        posted += 1
+    print("Added %d comment(s) (%d line, %d file-level). Private until you submit." % (
+        posted, posted - file_level, file_level))
+    print("PR: %s" % pr["html_url"])
+    return 0
+
+
+def cmd_delete(args):
+    path = "repos/%s/pulls/%d/reviews/%s" % (args.repo, args.number, args.review_id)
+    review = gh(args.host, [path])
+    if review.get("state") != "PENDING":
+        raise CliError("review %s is %s, not PENDING; only drafts can be deleted." % (args.review_id, review.get("state")))
+    gh(args.host, ["-X", "DELETE", path])
+    print("Pending review %s deleted." % args.review_id)
+    return 0
+
+
+# ---------------------------------------------------------------- main
+
+def repo_arg(value):
+    if not re.match(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", value):
+        raise argparse.ArgumentTypeError("expected OWNER/REPO, got %r" % value)
+    return value
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(prog="pr-review-cli", description=__doc__.split("\n\n")[0])
+    parser.add_argument("--host", default="github.com", help="GitHub host (default github.com)")
+    sub = parser.add_subparsers(dest="command")
+    sub.required = True
+
+    def common(p):
+        p.add_argument("repo", type=repo_arg, metavar="OWNER/REPO")
+        p.add_argument("number", type=int, metavar="N")
+        return p
+
+    common(sub.add_parser("diff", help="print the PR diff with line numbers")).set_defaults(func=cmd_diff)
+    common(sub.add_parser("list", help="list reviews on the PR")).set_defaults(func=cmd_list)
+    p = common(sub.add_parser("create", help="create a PENDING review from a comments file"))
+    p.add_argument("--comments-file", required=True)
+    p.add_argument("--dry-run", action="store_true", help="validate only; post nothing")
+    p.set_defaults(func=cmd_create)
+    p = common(sub.add_parser("delete", help="delete one of your PENDING reviews"))
+    p.add_argument("review_id", type=int, metavar="REVIEW_ID")
+    p.set_defaults(func=cmd_delete)
+
+    args = parser.parse_args(argv)
+    try:
+        return args.func(args)
+    except CliError as exc:
+        sys.stderr.write("pr-review-cli: %s\n" % exc)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

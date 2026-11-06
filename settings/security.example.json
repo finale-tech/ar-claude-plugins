@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git -C * commit *)",
+      "Bash(git -C * push *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(sudo *)",
+      "Bash(sed -i *)",
+      "Bash(sed -i* *)",
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)",
+      "Read(~/.gnupg/**)",
+      "Read(~/Library/Keychains/**)",
+      "Read(//Library/Keychains/**)",
+      "Read(//private/var/db/**)",
+      "Read(//private/var/root/**)",
+      "Read(//etc/master.passwd)"
+    ],
+    "ask": [
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.kube/config)",
+      "Read(~/.docker/config.json)",
+      "Read(~/.netrc)",
+      "Read(~/.npmrc)"
+    ],
+    "defaultMode": "plan"
+  }
+}

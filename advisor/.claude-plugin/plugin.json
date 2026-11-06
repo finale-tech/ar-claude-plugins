@@ -1,0 +1,8 @@
+{
+  "name": "advisor",
+  "description": "Personal advisor system — set goals, track commitments, run daily check-ins, detect behavioral patterns, and run retrospectives. Works for any domain: career, studies, health, personal growth.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Arnaud"
+  }
+}

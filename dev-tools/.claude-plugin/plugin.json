@@ -1,0 +1,8 @@
+{
+  "name": "dev-tools",
+  "description": "Developer tooling — includes the review-pr skill for structured pull request reviews.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Arnaud"
+  }
+}

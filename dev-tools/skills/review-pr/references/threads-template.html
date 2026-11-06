@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR #{{N}} threads</title>
+<!--
+review-pr File C template. Fill {{N}}, {{OWNER}}, {{REPO}}, {{TITLE}}, {{GENERATED}}
+(HTML-escape the title), then replace the ROWS marker with one <tr> per thread root:
+
+  <tr class="new">                                   class="new" only for threads raised this round
+    <td><a href="https://github.com/{{OWNER}}/{{REPO}}/pull/{{N}}#discussion_r123">#r123</a>
+        <span class="tag">[1155-2]</span> <span class="who">you</span></td>
+    <td><span class="c">src/Foo.java:42</span></td>
+    <td>Asks whether <span class="c">parseInt</span> can see non-numeric input.</td>
+  </tr>
+
+The tag span holds the finding ID when the root body starts with one; leave it out for
+Copilot's and other reviewers' threads. The who span holds the author login (or "you").
+-->
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2328; --muted: #59636e; --line: #d1d9e0;
+    --head: #f6f8fa; --link: #0969da; --code-bg: #eff1f3;
+    --new-bg: #fff8c5; --new-edge: #d4a72c; --tag: #8250df;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --line: #3d444d;
+      --head: #151b23; --link: #4493f8; --code-bg: #262c36;
+      --new-bg: #2e2a12; --new-edge: #9e6a03; --tag: #ab7df8;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .meta { color: var(--muted); margin: 0 0 16px; }
+  .legend { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+  .legend .swatch { display: inline-block; width: 10px; height: 10px; background: var(--new-bg);
+    border-left: 3px solid var(--new-edge); vertical-align: middle; margin-right: 4px; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  th { background: var(--head); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { white-space: nowrap; }
+  tr.new td { background: var(--new-bg); }
+  tr.new td:first-child { box-shadow: inset 3px 0 0 var(--new-edge); }
+  .c { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px;
+    background: var(--code-bg); padding: 1px 4px; border-radius: 4px; word-break: break-word; }
+  .tag { color: var(--tag); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  .who { color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>PR #{{N}}: {{TITLE}}</h1>
+  <p class="meta">
+    <a href="https://github.com/{{OWNER}}/{{REPO}}/pull/{{N}}">{{OWNER}}/{{REPO}}#{{N}}</a>
+    · review threads · generated {{GENERATED}}
+  </p>
+  <p class="legend"><span class="swatch"></span>raised this round</p>
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr><th>Thread</th><th>File:Line</th><th>What it asks</th></tr>
+      </thead>
+      <tbody>
+<!-- ROWS -->
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

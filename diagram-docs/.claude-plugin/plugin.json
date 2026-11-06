@@ -1,0 +1,8 @@
+{
+  "name": "diagram-docs",
+  "description": "Generate Mermaid diagrams from source code and design documents. Includes code review against design docs and diagram validation.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Arnaud"
+  }
+}

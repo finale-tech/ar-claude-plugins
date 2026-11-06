@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn clean *)",
+      "Bash(mvn compile *)",
+      "Bash(mvn test *)",
+      "Bash(mvn jacoco:report *)",
+      "Bash(mvn spring-boot:run *)",
+      "Bash(./mvnw clean *)",
+      "Bash(./mvnw test *)",
+      "Bash(checkstyle *)",
+      "Bash(pmd check *)"
+    ]
+  }
+}
