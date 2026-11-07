@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Advisor — Personal Advisory System
 
-A framework-based coaching system that tracks commitments, keeps you on task, detects behavioral patterns, and holds you accountable. It works for any domain — each one is its own data folder (for example your job, or a side project).
+A framework-based career coaching system that tracks commitments, keeps you on task, detects behavioral patterns, and holds you accountable. Your data lives in one private folder per domain, `~/.advisor/<name>/`, which `/advisor:create` sets up from the plugin's starter templates.
 
 Three layers, each doing one job: `sitrep` gathers the **facts**, `am` is the **coach**, `next` is the intraday **PM**. Every recommendation traces back to your specific situation, patterns, and commitments — never generic advice.
 
@@ -42,8 +42,8 @@ Three layers, each doing one job: `sitrep` gathers the **facts**, `am` is the **
 
 ```
 /advisor:help                    — This overview
-                                   All commands accept --domain <name> to target a non-default domain
-/advisor:create                  — Set up a new advisor domain (interactive interview)
+                                   All commands accept --domain <name> when you have more than one domain
+/advisor:create <name>           — Set up a new domain in ~/.advisor/<name>/ from the starter templates
 /advisor:sitrep                  — Situational report (facts since last time). Full mode.
 /advisor:sitrep --since <ISO>    — Windowed light scan (used by /advisor:next; also --hour / --today)
 /advisor:am                      — Daily coaching over sitrep's facts (accountability, urgency, artifact sync, priorities)
@@ -61,14 +61,11 @@ Three layers, each doing one job: `sitrep` gathers the **facts**, `am` is the **
 
 ## Data Architecture
 
-The advisor resolves your domain directory from `~/.claude/advisor-domains.json`. Use `--domain <name>` to target a specific domain, or omit it for the default.
+Each domain is one private folder, `~/.advisor/<name>/`. With a single domain every skill finds it on its own; with more than one, pass `--domain <name>`.
 
 **Your files:**
-- `playbook.md` — strategic plan and execution roadmap
-- `daily-ops.md` — daily operating manual and trigger/response scripts
-- `patterns.md` — avoidance patterns with detection heuristics
-- `instincts.md` — communication instincts (living document)
-- `catchup.md` — recovery sprint plan (when active)
+- `playbook.md` — your goal, the gap to close, and the execution plan (fill in "What You Know So Far" as you learn)
+- `operating-manual.md` — how you operate: Patterns (what the advisor watches for), Instincts (self-check questions), Daily Rules. Delete a pattern once you've mastered it
 - `weekly-impact-log.md` — cumulative impact tracker
 - `worklog-YYYY-MM-DD.md` — daily activity narrative (written by `sitrep`)
 
@@ -78,39 +75,32 @@ The advisor resolves your domain directory from `~/.claude/advisor-domains.json`
 **Advisor-managed files** (in `advisor/`):
 - `commitments.md` — formal commitment tracker with IDs, due dates, slip counts
 - `session-log.md` — session history + deliberation record (append-only, rotated)
-- `status.md` — portable snapshot + the domain's sources: Domain Sources (`work-tracker`, `meeting-transcripts`, `tasks-root`), `## Repos` (one `owner/repo` per line), Slack Sources
+- `status.md` — portable snapshot, plus everything you set once: `## You` (who you are), Domain Sources (`work-tracker`, `meeting-transcripts`, `tasks-root`), `## Repos` (one `owner/repo` per line), Slack Sources
 - `daily-brief-YYYY-MM-DD.md` — `am`'s coaching brief (opinion layer over the facts)
 - `.cache/next-state.md` — `next` loop bookkeeping (loop on/off, timer id, active-3 with worker ids, pending suggestion, notified)
 
 ## Getting Started
 
-1. Create a directory for your domain and run `/advisor:create` (registers it automatically, and asks for your name and Slack/GitHub IDs the first time).
-2. Each morning: `/advisor:sitrep` then `/advisor:am`.
-3. Through the day: say yes when `am` offers the loop (or run `/advisor:next start`). For check-ins that run without you at the keyboard, add the allow rules in `references/protocol.md` → "Unattended setup".
-4. Weekly: `/advisor:retro`.
+1. Run `/advisor:create <name>`. It creates `~/.advisor/<name>/` from the starter templates and asks for your name and Slack/GitHub IDs.
+2. Fill in `advisor/status.md` → Domain Sources, Repos and Slack Sources.
+3. Each morning: `/advisor:sitrep` then `/advisor:am`.
+4. Through the day: say yes when `am` offers the loop (or run `/advisor:next start`). For check-ins that run without you at the keyboard, add the allow rules in `references/protocol.md` → "Unattended setup".
+5. Weekly: `/advisor:retro`.
 
-## Config file and multiple domains
+## Who you are
 
-`~/.claude/advisor-domains.json` holds who you are and where your domains live. `/advisor:create` writes it; to edit it by hand:
+The `## You` section of `advisor/status.md` tells the scans who to look for. `/advisor:create` fills it in; to edit it by hand:
 
-```json
-{
-  "person": {
-    "name": "Jane Doe",
-    "aliases": ["Jane", "J.D."],
-    "slack_user_id": "U01ABCDEF",
-    "slack_username": "jdoe",
-    "github_username": "jdoe"
-  },
-  "default": "work",
-  "domains": {
-    "work": { "path": "/Users/you/advisor-work" },
-    "side-project": { "path": "/Users/you/advisor-side" }
-  }
-}
+```
+## You
+
+- name: Jane Doe
+- aliases: Jane, J.D.
+- slack_user_id: U01ABCDEF
+- slack_username: jdoe
+- github_username: jdoe
 ```
 
-- `person` is required: `name`, `slack_user_id`, `slack_username`, `github_username`. `aliases` (optional) are the names matched in transcripts and Slack; the default is your first name.
-- Use `--domain side-project` with any skill to target a non-default domain.
+`name`, `slack_user_id`, `slack_username` and `github_username` are required, and every skill stops with the missing field's name until they're set. `aliases` (optional) are the names matched in transcripts and Slack; the default is your first name.
 
 $ARGUMENTS

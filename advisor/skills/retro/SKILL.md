@@ -43,12 +43,9 @@ Non-zero exit → STOP with stderr. On success set `DOMAIN_PATH` from the `DOMAI
 3. `${DOMAIN_PATH}/advisor/commitments.md` — Full commitment audit
 4. `${DOMAIN_PATH}/advisor/session-log.md` — Read all entries from this week
 5. `${DOMAIN_PATH}/playbook.md` — Reflection protocol, recalibration signals, current week targets
-6. `${DOMAIN_PATH}/catchup.md` — Read if it exists (recovery sprint targets)
-7. `${DOMAIN_PATH}/patterns.md` — Avoidance patterns for the week's review
-8. `${DOMAIN_PATH}/daily-ops.md` — Behavioral framework reference
-9. `${DOMAIN_PATH}/weekly-impact-log.md` — To update
-10. `${DOMAIN_PATH}/instincts.md` — To potentially update
-11. `${DOMAIN_PATH}/advisor/status.md` — To update; also check for cross-domain paths and read those status files
+6. `${DOMAIN_PATH}/operating-manual.md` — Patterns for the week's review, Instincts to potentially add to, Daily Rules as the behavioral reference
+7. `${DOMAIN_PATH}/weekly-impact-log.md` — To update
+8. `${DOMAIN_PATH}/advisor/status.md` — To update; also check for cross-domain paths and read those status files
 
 ## Step 2: Run the Retrospective Protocol
 
@@ -66,10 +63,10 @@ Follow the Weekly Retrospective protocol from `protocol.md` exactly. Guide the u
 
 1. **Append** retrospective entry to `${DOMAIN_PATH}/advisor/session-log.md`
 2. **Update** `${DOMAIN_PATH}/advisor/commitments.md` — close completed, flag overdue, demote items that no longer pass the playbook filter, add new for next week (only items that pass the commitment filter: maps to playbook dimension + external accountability). Batch-promote from work tracker with user confirmation.
-3. **Update** `${DOMAIN_PATH}/advisor/status.md` — refresh the full portable snapshot
+3. **Update** `${DOMAIN_PATH}/advisor/status.md` — refresh the portable snapshot (the front matter and the sections above `## You`). Never change `## You`, Domain Sources, Repos or Slack Sources: those are the user's settings.
 4. **Append** weekly reflection to `${DOMAIN_PATH}/weekly-impact-log.md`
-5. **Append** to `${DOMAIN_PATH}/instincts.md` if user confirmed new instincts
-6. **Create or update** `${DOMAIN_PATH}/catchup.md` if recovery sprint is needed
+5. **Append** to the Instincts section of `${DOMAIN_PATH}/operating-manual.md` if the user confirmed new instincts. Each one gets: the self-check question (bold, quotable), the replacement behavior ("Instead of X, an engineer should Y"), the reasoning (the failure mode it prevents), and the source (the situation that produced it)
+6. **Remove** a pattern from the Patterns section of `operating-manual.md` only if the user says they've mastered it
 
 ## Behavior
 

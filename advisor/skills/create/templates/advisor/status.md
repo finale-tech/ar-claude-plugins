@@ -3,39 +3,49 @@
 *This file is the interchange format. Any Claude session can read this file alone to understand the current trajectory in this domain. Updated weekly during the retrospective.*
 
 ---
-domain: [DOMAIN_IDENTIFIER]
-goal: [PRIMARY_GOAL]
-updated: [DATE]
-phase: [CURRENT_PHASE]
+domain: {{DOMAIN}}
+goal: Close the Senior → Staff gap in the new role
+updated: {{TODAY}}
+phase: Week 1 — Absorb
 ---
 
 ## Current Status
 
-- [3-5 bullet summary of where things stand]
-- [Include both progress and gaps]
-- [Mention what's actively being worked on]
+- New role; the playbook's Week 1 (Absorb) is starting
+- "What You Know So Far" in `playbook.md` is not filled in yet: team, architecture, manager expectations
+- No commitments yet; the first `/advisor:sitrep` and `/advisor:am` are pending
 
 ## Active Commitments
 
-- [List active commitments with due dates — summary only]
+- None yet
 
 ## Active Patterns (being worked on)
 
-- **[Pattern name]** — [Brief description and current approach]
+- **The patterns in `operating-manual.md`** — on watch; none flagged yet
 
 ## Current State
 
-- [Self-reported emotional/energy/motivation state relevant to this domain]
+- [Fill in during the first AM session]
 
 ## Trend
 
-- [Period 1]: [Brief state description]
+- Week 0: setup
 
 ## Cross-Domain Relevance
 
-- [What other advisors should know about this domain's impact]
-- [List paths to other domain status files if they exist:]
-  - `/path/to/other-domain/advisor/status.md` — [domain name]
+- None — single domain
+
+---
+
+## You
+
+*Read by every advisor skill to find you in Slack, GitHub and meeting transcripts. Set once; the retro never rewrites this section.*
+
+- name: [Your full name]
+- aliases: [Other names or initials people use for you, comma-separated — optional]
+- slack_user_id: [Slack member ID, starts with U]
+- slack_username: [Your Slack handle]
+- github_username: [Your GitHub login]
 
 ---
 

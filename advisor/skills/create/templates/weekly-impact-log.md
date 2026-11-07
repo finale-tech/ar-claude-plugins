@@ -1,6 +1,6 @@
 # Impact Log
 
-*Domain: [DOMAIN_NAME] | Update weekly during retrospective.*
+*Domain: {{DOMAIN}} | Update weekly during retrospective.*
 *This log tracks concrete outputs and contributions over time.*
 
 ---

@@ -3,7 +3,7 @@ name: adhoc
 description: Event-driven coaching — bring a situation, decision, draft message, or emotional reaction and get framework-based advice with actionable output.
 disable-model-invocation: true
 argument-hint: [describe your situation]
-allowed-tools: Read Edit
+allowed-tools: Read Edit Bash(bash *)
 ---
 
 # Ad-hoc Coaching Session
@@ -14,7 +14,9 @@ You are running an event-driven advisor session. The user is bringing a specific
 
 ### Step 1.0: Resolve domain
 
-Read `${CLAUDE_SKILL_DIR}/../../references/domain-resolution.md` and follow its instructions to set `DOMAIN_PATH`.
+Run: `bash ${CLAUDE_SKILL_DIR}/../../scripts/preflight.sh [<domain>]`
+`<domain>` is the value after `--domain` in the arguments, if one was given; otherwise run it with no argument.
+Non-zero exit → STOP with stderr. On success set `DOMAIN_PATH` from the `DOMAIN_PATH=` line and announce the domain.
 
 ### Step 1.1: Load advisor context
 
@@ -23,11 +25,9 @@ Read `${CLAUDE_SKILL_DIR}/../../references/domain-resolution.md` and follow its 
 
 ### Step 1.2: Load user context
 
-3. `${DOMAIN_PATH}/daily-ops.md` — Trigger/instinct/response scenarios, three-question framework
+3. `${DOMAIN_PATH}/operating-manual.md` — Patterns, Instincts, and Daily Rules (trigger/instinct/response scenarios, the three-question framework)
 4. `${DOMAIN_PATH}/playbook.md` — Strategy, recalibration signals
-5. `${DOMAIN_PATH}/patterns.md` — Avoidance patterns
-6. `${DOMAIN_PATH}/advisor/commitments.md` — Is this related to an active commitment?
-7. `${DOMAIN_PATH}/catchup.md` — Read if it exists (recovery context)
+5. `${DOMAIN_PATH}/advisor/commitments.md` — Is this related to an active commitment?
 
 ## Step 2: Listen
 
@@ -42,12 +42,11 @@ Wait for their response. Do not jump to advice.
 Follow the Ad-hoc Session protocol from `protocol.md`:
 
 1. **Identify the relevant framework** from the user's data files:
-   - Workplace/interpersonal → `daily-ops.md` trigger/instinct/response
+   - Workplace/interpersonal → `operating-manual.md` → Daily Rules (trigger/instinct/response scenarios) and Instincts
    - Strategic decision → `playbook.md` recalibration signals
-   - Recovery-phase → `catchup.md`
-   - Emotional reaction → `daily-ops.md` three-question framework
-   - Behavioral pattern → `patterns.md`
-2. **Name which framework applies** and why. If the relevant framework file (`daily-ops.md`, `playbook.md`, `patterns.md`, `catchup.md`) is missing or doesn't cover the situation, say so plainly — do not invent a framework or attribute one that isn't in the files.
+   - Emotional reaction → `operating-manual.md` → Daily Rules (the three-question framework)
+   - Behavioral pattern → `operating-manual.md` → Patterns
+2. **Name which framework applies** and why. If the relevant file (`operating-manual.md`, `playbook.md`) is missing or doesn't cover the situation, say so plainly — do not invent a framework or attribute one that isn't in the files.
 3. **Check for emotional weight** — are they reacting to what happened or what they think it means?
 4. **Produce actionable output:** specific script, action plan, or "no action needed" with reasoning
 

@@ -1,6 +1,6 @@
 {
   "name": "advisor",
-  "description": "Personal advisor system — set goals, track commitments, run daily check-ins, detect behavioral patterns, and run retrospectives. Works for any domain: career, studies, health, personal growth.",
+  "description": "Career advisor — tracks commitments, runs daily check-ins and an intraday PM loop, catches behavioral patterns, and runs weekly retros. Your data lives in one private folder per domain (~/.advisor/<name>/), set up by /advisor:create from starter templates.",
   "version": "1.0.0",
   "author": {
     "name": "Arnaud"

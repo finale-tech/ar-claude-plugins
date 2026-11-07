@@ -125,11 +125,11 @@ If no worklog exists for yesterday, note "worklog not available — coverage may
 The AM accountability and priority-setting flow, reading from the daily brief. **Ask before concluding: the questions (step 1) and the wrap-up (step 4) are two separate turns with a hard gate between them — never produce both in one pass.**
 
 1. **Ask the load-bearing questions, then STOP.** Work through yesterday's commitments and key items, asking only the questions whose answer would change an ordering or a recommendation — use the Commitment <> Jira Sync section for concrete data (e.g., "C-030 says delivered but PROJ-6632 is still open — which is right?"), plus any decision the day's ranking hinges on. Never re-ask a fact the sitrep already established. Specific yes/no or short-answer, 3-5 max. Then **wait for the answers** — do not print the ranking, wrap-up, or "Start here" yet.
-   - On slips: check against `./patterns.md` and name the pattern if one matches.
-   - Artifact gaps can be flagged as Pattern #7 (analysis expansion) or last-mile delivery gap.
+   - On slips: check against the Patterns section of `./operating-manual.md` and name the pattern if one matches.
+   - Artifact gaps can be flagged as the *Analysis Expansion as Delivery Avoidance* pattern (if it's still in the manual) or a last-mile delivery gap.
 2. **Log brief signals** from the answers.
 3. **Surface untracked work (playbook-filtered):** Same filter as before (maps to playbook dimension + external accountability). Now also surfaces artifact gaps as commitment candidates.
-4. **Output (only after the step-1 answers):** the end-of-session wrap-up (format below) — bulleted and linked, with the 🗃️ Needs Prioritization section triaging 7 items to a named decision. If a load-bearing question went unanswered, tag each dependent pick "assumes <X>" rather than presenting it as settled. Quick-win artifact gaps can be flagged inline as candidates. Weave any relevant `./daily-ops.md` principle into the interactive discussion rather than the wrap-up.
+4. **Output (only after the step-1 answers):** the end-of-session wrap-up (format below) — bulleted and linked, with the 🗃️ Needs Prioritization section triaging 7 items to a named decision. If a load-bearing question went unanswered, tag each dependent pick "assumes <X>" rather than presenting it as settled. Quick-win artifact gaps can be flagged inline as candidates. Weave any relevant Daily Rules principle from `./operating-manual.md` into the interactive discussion rather than the wrap-up.
 5. **Append entry to `./advisor/session-log.md`**
 6. **Update `./advisor/commitments.md`** if any statuses changed.
 
@@ -236,7 +236,7 @@ Never use `claude logs` as a status source — it is a terminal screen scrape, n
 4. **Due today.**
 5. **Stale >3 days needing a nudge.**
 
-Within a tier, smallest effort-to-ship first — clear the 2-minute loops before the multi-hour ones. Give origination items (the Pattern #4 counter) a visibility bump so pure-execution work never buries them for more than a day. One drift line per cycle, mapped to `patterns.md`.
+Within a tier, smallest effort-to-ship first — clear the 2-minute loops before the multi-hour ones. Give origination items (the counter to the *Staying in the Ticket Queue* pattern) a visibility bump so pure-execution work never buries them for more than a day. One drift line per cycle, mapped to a pattern in the Patterns section of `operating-manual.md`.
 
 ### `.cache/next-state.md` — loop bookkeeping (not the tracker)
 
@@ -313,11 +313,10 @@ Ask for the code repo once per task and remember it (`--add-dir`). The PM never 
 
 1. **Listen first.** Let the user describe the situation fully before responding.
 2. **Identify the relevant framework:**
-   - Workplace/interpersonal interaction → `./daily-ops.md` trigger/instinct/response scenarios
+   - Workplace/interpersonal interaction → `./operating-manual.md` → Daily Rules (trigger/instinct/response scenarios) and Instincts
    - Strategic/career decision → `./playbook.md` strategy and recalibration signals
-   - Recovery-phase action → `./catchup.md` priorities (if file exists)
-   - Emotional reaction → `./daily-ops.md` three-question framework
-   - Behavioral pattern → `./patterns.md`
+   - Emotional reaction → `./operating-manual.md` → Daily Rules (the three-question framework)
+   - Behavioral pattern → `./operating-manual.md` → Patterns
 3. **Apply the framework explicitly:** Name which framework applies and why.
 4. **Check for emotional weight:** Is the user reacting to what was said, or what they think was meant? Apply the "most boring explanation" test.
 5. **Output:** Specific response script or action plan (not generic advice).
@@ -348,7 +347,7 @@ Ask for the code repo once per task and remember it (`--add-dir`). The PM never 
    Wait for the user's input on each question before proceeding.
 
 2. **Plan vs. Actual comparison:**
-   - Read this week's targets from `./catchup.md` (if exists) or `./playbook.md`
+   - Read this week's targets from `./playbook.md`
    - Compare against `./advisor/session-log.md` entries for the week
    - Quantify where possible: outputs delivered, commitments completed vs. slipped
 
@@ -366,24 +365,23 @@ Ask for the code repo once per task and remember it (`--add-dir`). The PM never 
 5. **Avoidance pattern review:**
    - Review the week's session logs for any patterns flagged
    - Are patterns recurring, improving, or new?
-   - Check against `./patterns.md`
+   - Check against the Patterns section of `./operating-manual.md`
+   - If the user says they've mastered a pattern, remove it from the manual
 
 6. **Recalibration signal check** (if `./playbook.md` has a recalibration table):
    - Assess each signal dimension: ahead / on track / behind
 
 7. **Update `./advisor/status.md`:**
-   - Refresh the portable snapshot with current state
+   - Refresh the portable snapshot with current state (never change `## You`, Domain Sources, Repos or Slack Sources — those are the user's settings)
    - Update emotional state, energy/confidence trend
    - Update cross-domain relevance section
 
-8. **Instinct candidate surfacing** — review the week's patterns and interactions. Suggest any new instincts worth adding to `./instincts.md`. User confirms.
+8. **Instinct candidate surfacing** — review the week's patterns and interactions. Suggest any new instincts worth adding to the Instincts section of `./operating-manual.md`. User confirms.
 
 9. **Plan next week:**
    - Top 3 priorities
    - Any commitments with specific deadlines
    - Relationship targets (who to connect with)
-
-10. **If recovery sprint needed**, create or update `./catchup.md`
 
 ### Weekly Output Format
 

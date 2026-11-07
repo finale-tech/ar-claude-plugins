@@ -1,62 +1,41 @@
 ---
 name: create
-description: Initialize a new advisor domain in the current directory. Conducts a deep probing interview to understand your goal, situation, behavioral patterns, and key relationships, then generates a complete personalized advisory system.
+description: Set up a new advisor domain — creates the private data folder ~/.advisor/<name>/ from the starter templates and records who you are. Run once per domain.
 disable-model-invocation: true
-context: fork
-agent: domain-builder
-effort: max
-allowed-tools: Read Write Glob AskUserQuestion
+argument-hint: [domain name]
+allowed-tools: Read Edit Bash(bash *)
 ---
 
-# Create a New Advisor Domain
+# Create an Advisor Domain
 
-You are initializing a new advisor domain in the current working directory.
+Sets up the private data folder `~/.advisor/<name>/` from the plugin's starter templates (`templates/` next to this file). Nothing is generated: the templates are copied as they are, with the domain name and today's date filled in.
 
-## Pre-flight Check
+## Step 1: Name the domain
 
-First, check if this directory already has advisor data:
-- Look for `./advisor/commitments.md` or `./playbook.md`
-- If either exists, STOP and tell the user: "This directory already has advisor data. Run `/advisor:am` to start a session, or choose an empty directory."
+Use the name in the arguments if one was given. Otherwise ask for a short name: lowercase letters, digits and dashes (for example `dimension`).
 
-## Your Task
+## Step 2: Create the folder
 
-You are conducting a deep, probing interview to understand this person's goal, situation, and behavioral tendencies. From their answers, you will generate a complete personalized advisory system.
+Run: `bash ${CLAUDE_SKILL_DIR}/../../scripts/create-domain.sh <name>`
 
-**Read the interview guide** at `${CLAUDE_SKILL_DIR}/references/interview-guide.md` for the full methodology.
+Non-zero exit → STOP and show stderr (the script refuses to overwrite an existing folder). On success, set `DOMAIN_PATH` from the `DOMAIN_PATH=` line.
 
-**Read the templates** in `${CLAUDE_SKILL_DIR}/references/` to understand the structure of each file you need to generate.
+## Step 3: Record who you are
 
-## What You Generate
+Ask for these five in one message:
 
-After the interview, create these files in the current directory:
+1. **Full name**
+2. **Aliases** — other names or initials people use for you in meetings and Slack (optional; the default is your first name)
+3. **Slack member ID** — in Slack, open your profile, then **⋮**, then **Copy member ID** (it starts with `U`)
+4. **Slack handle**
+5. **GitHub login** — `gh api user -q .login` prints it
 
-1. `playbook.md` — Strategic plan based on `${CLAUDE_SKILL_DIR}/references/playbook-template.md`
-2. `daily-ops.md` — Behavioral rules based on `${CLAUDE_SKILL_DIR}/references/daily-ops-template.md`
-3. `patterns.md` — Diagnosed avoidance patterns (4-6 patterns with detection heuristics)
-4. `instincts.md` — Starter communication filters based on `${CLAUDE_SKILL_DIR}/references/instincts-starter.md`
-5. `weekly-impact-log.md` — Empty template based on `${CLAUDE_SKILL_DIR}/references/impact-log-template.md`
-6. `advisor/commitments.md` — Seeded with first 2-3 commitments based on `${CLAUDE_SKILL_DIR}/references/commitments-template.md`
-7. `advisor/session-log.md` — Initialization entry based on `${CLAUDE_SKILL_DIR}/references/session-log-template.md`
-8. `advisor/status.md` — Initial snapshot based on `${CLAUDE_SKILL_DIR}/references/status-template.md`
-9. `CLAUDE.md` — Local auto-detection file based on `${CLAUDE_SKILL_DIR}/references/claude-md-template.md`
+Write the answers into the `## You` section of `${DOMAIN_PATH}/advisor/status.md`, replacing each field's `[placeholder]` (keep the aliases placeholder if none were given). Change only those five lines.
 
-## Register the Domain
+Then run `bash ${CLAUDE_SKILL_DIR}/../../scripts/preflight.sh <name>`. It must end with `PREFLIGHT_OK`; if it fails, fix the field it names.
 
-After all files are created:
+## Step 4: Say what's left
 
-1. Read `~/.claude/advisor-domains.json` (create it if it doesn't exist with `{"default": "", "domains": {}}`)
-2. If it has no `person` block (first run), ask the user, one at a time, for: full name; aliases (other names or initials people use for them — optional, default is their first name); Slack user ID; Slack username; GitHub username. Store them as `person` with keys `name`, `aliases` (a list), `slack_user_id`, `slack_username`, `github_username`. Advisor's scans cannot start without them.
-3. Ask the user for a short name for this domain (e.g., "work", "side-project")
-4. Add the domain to the config: set `domains.<name>.path` to the current working directory (absolute path)
-5. If this is the first domain (or `default` is empty), set `default` to this domain's name
-6. Write the updated config back to `~/.claude/advisor-domains.json`
-7. Tell the user: "Domain '<name>' registered. You can now invoke advisor skills from any directory. Fill in the Domain Sources, Repos and Slack Sources sections of `advisor/status.md` before the first `/advisor:sitrep`."
-
-## Important
-
-- Ask questions ONE AT A TIME. Do not dump all questions at once.
-- Adapt follow-up questions based on answers.
-- Diagnose avoidance patterns from behavioral signals — don't just ask "what are your patterns."
-- After generating all files, show the user a summary of what was created and ask them to review.
+> Domain `<name>` is ready at `<DOMAIN_PATH>`. Before the first `/advisor:sitrep`, fill in `advisor/status.md` → Domain Sources, Repos and Slack Sources. Fill in `playbook.md` → "What You Know So Far" as you learn it. `operating-manual.md` starts empty: add your own patterns, instincts and daily rules — the advisor coaches against what's there.
 
 $ARGUMENTS

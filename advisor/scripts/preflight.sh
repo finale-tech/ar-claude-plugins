@@ -4,9 +4,10 @@
 # a specific reason.
 #
 # Usage: preflight.sh [domain_name]
-#   domain_name  optional; the value from a `--domain <name>` flag. When empty:
-#                use the CWD if it contains advisor/commitments.md, else the
-#                config "default" domain.
+#   domain_name  optional; the value from a `--domain <name>` flag. Domains live
+#                at a fixed place: ${ADVISOR_HOME:-~/.advisor}/<name>/. With a
+#                name, use that folder; without one, use the only domain there
+#                (none or several → fail and list them).
 #
 # Stdout on success (key=value lines, final line PREFLIGHT_OK):
 #   DOMAIN_PATH=<absolute path>
@@ -18,18 +19,18 @@
 #   NOW_EPOCH=<unix seconds>
 #   WINDOW_START_EPOCH=<unix seconds — live-scan lower bound, last scan − 24h>
 #   WINDOW_START_DATE=<YYYY-MM-DD — calendar-date form of WINDOW_START_EPOCH>
-#   PERSON_NAME=<full name>                from the config's `person` block
+#   PERSON_NAME=<full name>                from `## You` in the domain's advisor/status.md
 #   PERSON_ALIASES=<a|b|c>                 names to match in transcripts and Slack (default: first name)
 #   SLACK_USER_ID=<id>   SLACK_USERNAME=<handle>   GITHUB_USERNAME=<login>
 #   PREFLIGHT_OK
 # Exit non-zero with a specific reason on stderr otherwise.
 #
 # Path overrides (for testing) — env vars take precedence over the defaults:
-#   ADVISOR_CONFIG, ADVISOR_EXTRACT_SCRIPT, ADVISOR_TODOS_PROCESS
+#   ADVISOR_HOME, ADVISOR_EXTRACT_SCRIPT, ADVISOR_TODOS_PROCESS
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG="${ADVISOR_CONFIG:-$HOME/.claude/advisor-domains.json}"
+ADVISOR_HOME="${ADVISOR_HOME:-$HOME/.advisor}"
 EXTRACT_SCRIPT="${ADVISOR_EXTRACT_SCRIPT:-$SCRIPT_DIR/extract_sessions.py}"
 TODOS_PROCESS="${ADVISOR_TODOS_PROCESS:-$SCRIPT_DIR/../references/process.md}"
 
@@ -46,36 +47,30 @@ done
 command -v python3 >/dev/null 2>&1 || {
   echo "PREFLIGHT FAILED: python3 not found on PATH." >&2; exit 1; }
 
-[ -f "$CONFIG" ] || {
-  echo "PREFLIGHT FAILED: advisor config not found at $CONFIG — run /advisor:create or create it with your domain paths." >&2
-  exit 1; }
-
-# Resolve DOMAIN_PATH deterministically from the config. Any failure prints a
-# specific PREFLIGHT FAILED reason to stderr and exits non-zero (set -e then
-# aborts the outer script via the failed command substitution).
-DOMAIN_PATH="$(python3 - "$CONFIG" "$DOMAIN_ARG" "$PWD" <<'PY'
-import json, os, sys
-cfg_path, domain_arg, cwd = sys.argv[1], sys.argv[2], sys.argv[3]
-try:
-    cfg = json.load(open(cfg_path))
-except Exception as e:
-    sys.stderr.write("PREFLIGHT FAILED: cannot parse %s (%s)\n" % (cfg_path, e)); sys.exit(3)
-domains = cfg.get("domains", {}) or {}
-def emit(p):
-    print(p); sys.exit(0)
+# Resolve DOMAIN_PATH by convention: every domain is a folder under ADVISOR_HOME
+# that holds advisor/commitments.md. Any failure prints a specific PREFLIGHT
+# FAILED reason to stderr and exits non-zero (set -e then aborts the outer
+# script via the failed command substitution).
+DOMAIN_PATH="$(python3 - "$ADVISOR_HOME" "$DOMAIN_ARG" <<'PY'
+import os, sys
+home, domain_arg = sys.argv[1], sys.argv[2]
+def is_domain(p):
+    return os.path.isfile(os.path.join(p, "advisor", "commitments.md"))
+names = sorted(
+    n for n in (os.listdir(home) if os.path.isdir(home) else [])
+    if not n.startswith(".") and is_domain(os.path.join(home, n))
+)
+avail = ", ".join(names) or "(none)"
 if domain_arg:
-    d = domains.get(domain_arg)
-    if not d or not d.get("path"):
-        avail = ", ".join(domains.keys()) or "(none)"
-        sys.stderr.write("PREFLIGHT FAILED: domain '%s' not found. Available: %s\n" % (domain_arg, avail)); sys.exit(4)
-    emit(d["path"])
-if os.path.isfile(os.path.join(cwd, "advisor", "commitments.md")):
-    emit(cwd)
-dn = cfg.get("default", "")
-d = domains.get(dn)
-if not d or not d.get("path"):
-    sys.stderr.write("PREFLIGHT FAILED: no --domain given, CWD has no advisor data, and config 'default' is unset or invalid.\n"); sys.exit(5)
-emit(d["path"])
+    p = os.path.join(home, domain_arg)
+    if not is_domain(p):
+        sys.stderr.write("PREFLIGHT FAILED: no advisor domain '%s' in %s. Available: %s\n" % (domain_arg, home, avail)); sys.exit(4)
+    print(p); sys.exit(0)
+if len(names) == 1:
+    print(os.path.join(home, names[0])); sys.exit(0)
+if not names:
+    sys.stderr.write("PREFLIGHT FAILED: no advisor domain in %s — run /advisor:create <name> first.\n" % home); sys.exit(5)
+sys.stderr.write("PREFLIGHT FAILED: several domains in %s (%s) — pass --domain <name>.\n" % (home, avail)); sys.exit(5)
 PY
 )"
 
@@ -83,22 +78,37 @@ PY
 [ -f "$DOMAIN_PATH/advisor/commitments.md" ] || {
   echo "PREFLIGHT FAILED: '$DOMAIN_PATH' has no advisor/commitments.md — not an initialized domain." >&2; exit 1; }
 
-# Identity: who the scans look for. Set once in the config's `person` block, so no
-# skill or script hardcodes a name or account ID.
-PERSON_OUT="$(python3 - "$CONFIG" <<'PY'
-import json, sys
-cfg_path = sys.argv[1]
-p = json.load(open(cfg_path)).get("person") or {}
+# Identity: who the scans look for. Set once in the `## You` section of the
+# domain's advisor/status.md, so no skill or script hardcodes a name or account
+# ID. A blank field, or one still holding its `[placeholder]`, counts as missing.
+STATUS="$DOMAIN_PATH/advisor/status.md"
+[ -f "$STATUS" ] || {
+  echo "PREFLIGHT FAILED: '$DOMAIN_PATH' has no advisor/status.md." >&2; exit 1; }
+PERSON_OUT="$(python3 - "$STATUS" <<'PY'
+import re, sys
+path = sys.argv[1]
+text = open(path, encoding="utf-8").read()
+m = re.search(r'^## You[ \t]*\n(.*?)(?=^## |\Z)', text, re.M | re.S)
+if not m:
+    sys.stderr.write("PREFLIGHT FAILED: %s has no '## You' section — add one with name, aliases, slack_user_id, slack_username, github_username (/advisor:help shows it).\n" % path); sys.exit(6)
+fields = {}
+for line in m.group(1).splitlines():
+    mm = re.match(r'^\s*-\s*([a-z_]+):\s*(.*?)\s*$', line)
+    if mm:
+        fields[mm.group(1)] = mm.group(2)
+def val(k):
+    v = fields.get(k, "").strip()
+    return "" if (not v or v.startswith("[")) else v
 need = ["name", "slack_user_id", "slack_username", "github_username"]
-missing = [k for k in need if not str(p.get(k, "")).strip()]
+missing = [k for k in need if not val(k)]
 if missing:
-    sys.stderr.write("PREFLIGHT FAILED: %s has no person.%s — add a \"person\" block with name, slack_user_id, slack_username, github_username (optional: aliases). /advisor:help shows an example.\n" % (cfg_path, ", person.".join(missing))); sys.exit(6)
-aliases = p.get("aliases") or [p["name"].split()[0]]
-print("PERSON_NAME=%s" % p["name"])
+    sys.stderr.write("PREFLIGHT FAILED: '## You' in %s is missing %s — fill it in.\n" % (path, ", ".join(missing))); sys.exit(6)
+aliases = [a.strip() for a in val("aliases").split(",") if a.strip()] or [val("name").split()[0]]
+print("PERSON_NAME=%s" % val("name"))
 print("PERSON_ALIASES=%s" % "|".join(aliases))
-print("SLACK_USER_ID=%s" % p["slack_user_id"])
-print("SLACK_USERNAME=%s" % p["slack_username"])
-print("GITHUB_USERNAME=%s" % p["github_username"])
+print("SLACK_USER_ID=%s" % val("slack_user_id"))
+print("SLACK_USERNAME=%s" % val("slack_username"))
+print("GITHUB_USERNAME=%s" % val("github_username"))
 PY
 )"
 

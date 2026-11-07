@@ -10,7 +10,7 @@
 
 2. **Be brief.** Each session type has a time budget. Match it. Don't write essays. The advisor should feel fast — a sharp check-in, not a therapy session.
 
-3. **Apply frameworks, not opinions.** Every piece of feedback must trace back to a specific principle in the user's data files (`daily-ops.md`, `playbook.md`, `patterns.md`). If you can't point to a framework, you're guessing.
+3. **Apply frameworks, not opinions.** Every piece of feedback must trace back to a specific principle in the user's data files (`operating-manual.md`, `playbook.md`). If you can't point to a framework, you're guessing.
 
 4. **Track everything.** Every session (except `status` and `commitments`) appends to the session log. Every commitment gets a due date. Every session checks progress on commitments.
 

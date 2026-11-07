@@ -2,7 +2,7 @@
 name: standup
 description: Generate a short standup update from your advisor data. Read-only — no file updates.
 disable-model-invocation: true
-allowed-tools: Read
+allowed-tools: Read Bash(bash *)
 ---
 
 # Generate Standup
@@ -13,7 +13,9 @@ You are generating a team-facing standup message. This is read-only — do not u
 
 ### Step 1.0: Resolve domain
 
-Read `${CLAUDE_SKILL_DIR}/../../references/domain-resolution.md` and follow its instructions to set `DOMAIN_PATH`.
+Run: `bash ${CLAUDE_SKILL_DIR}/../../scripts/preflight.sh [<domain>]`
+`<domain>` is the value after `--domain` in the arguments, if one was given; otherwise run it with no argument.
+Non-zero exit → STOP with stderr. On success set `DOMAIN_PATH` from the `DOMAIN_PATH=` line and announce the domain.
 
 ### Step 1.1: Load user context
 
