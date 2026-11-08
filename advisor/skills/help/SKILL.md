@@ -16,7 +16,7 @@ Three layers, each doing one job: `sitrep` gathers the **facts**, `am` is the **
 
 **`/advisor:sitrep`** (~5 min) — the situational report: what changed since last time. Generates worklogs, scans transcripts + Slack + Jira/PRs for new/updated items, and refreshes your work tracker. Facts only, no opinion. Always runs on Sonnet at high effort. Run this first.
 
-**`/advisor:am`** (~15 min) — the coach. Reads `sitrep`'s facts (does not re-gather), then: decides urgency (regenerates the 🔴/🗃️ tables), applies the Artifact Rule to catch gaps, holds accountability on commitment↔ticket contradictions, sets today's top 3, and syncs Jira (posts on approval). Writes the daily brief. Run after `sitrep`. `skip-sync` skips the Jira sync.
+**`/advisor:am`** (~15 min) — the coach. Reads `sitrep`'s facts (does not re-gather), then: decides urgency (regenerates the 🔴/🗃️ tables), applies the Artifact Rule to catch gaps, holds accountability on commitment↔ticket contradictions, sets today's top 3, and drafts the Jira updates for you to apply (it never writes to Jira itself). Writes the daily brief. Run after `sitrep`. `skip-sync` skips the Jira drafts.
 
 ### Intraday — the PM loop
 
@@ -46,8 +46,8 @@ Three layers, each doing one job: `sitrep` gathers the **facts**, `am` is the **
 /advisor:create <name>           — Set up a new domain in ~/.advisor/<name>/ from the starter templates
 /advisor:sitrep                  — Situational report (facts since last time). Full mode.
 /advisor:sitrep --since <ISO>    — Windowed light scan (used by /advisor:next; also --hour / --today)
-/advisor:am                      — Daily coaching over sitrep's facts (accountability, urgency, artifact sync, priorities)
-/advisor:am skip-sync            — Coaching without the Jira sync phase
+/advisor:am                      — Daily coaching over sitrep's facts (accountability, urgency, Jira drafts, priorities)
+/advisor:am skip-sync            — Coaching without the Jira drafts
 /advisor:next start              — Start the intraday PM loop (on a timer, ends at 5pm; hands work to background workers)
 /advisor:next                    — One check-in (the loop's timer runs this). --local skips the broad scan
 /advisor:next end                — Stop the loop, wrap the day

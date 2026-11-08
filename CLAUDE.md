@@ -20,7 +20,8 @@ This repo is the `arnaud-plugins` local marketplace: `advisor`, `dev-tools`, `di
 - **Compose via scripts and shared references.** One exception: `next` invokes `sitrep --since <ts>` (which is why `sitrep` is model-invocable). `am` does not gather — it reads what `sitrep` produced. The scan definition lives once in `references/process.md`, run at `full` (sitrep) or `--since` (next) scope.
 - **Bounded reads.** Get the last session date from `LAST_SESSION_DATE`; never read the whole `session-log.md` for a date. Rotation keeps that file small.
 - **No how-to text in the data folder.** The skills and `/advisor:help` explain themselves; data files hold data.
-- **Refer to patterns by name, never by number.** Users delete patterns from `operating-manual.md` once they've mastered them, so a number would point at the wrong pattern; say "if it's still in the manual".
+- **Never name a specific pattern, instinct or rule in the plugin.** They live only in the user's `operating-manual.md`, which starts empty and loses patterns as the user masters them. Point at the section ("the matching pattern from the Patterns section") and let the manual supply the name. The same goes for the playbook: refer to "a dimension in `playbook.md`", never a list of them.
+- **Examples use obviously fake values** (`PROJ-123`, `PR #42`, `~/code/example-service`), never IDs, names or paths copied from a real run.
 - **Retro never rewrites the user's settings** in `status.md` (`## You`, Domain Sources, Repos, Slack Sources) — only the snapshot above them.
 
 ### Gotchas

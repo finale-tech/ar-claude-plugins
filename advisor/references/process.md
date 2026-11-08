@@ -39,7 +39,7 @@ Permalink → anchor: `.../archives/<CID>/p<digits>?thread_ts=<TS>&cid=<CID>` gi
 
 ### Search — discovery only
 
-**Search finds sources NOT already covered above** — channels/DMs not in the configured list, and threads not yet anchored to a tracker item. Use `slack_search_public_and_private` with `<@{SLACK_USER_ID}>` and `from:@{SLACK_USERNAME}`, windowed by `after:/before:` (pad a day for PDT/UTC skew; never `on:`). Flag any channel/DM in the results that isn't configured, to add it; anchor any newly-found active thread to its tracker item so part 2 picks it up next run.
+**Search finds sources NOT already covered above** — channels/DMs not in the configured list, and threads not yet anchored to a tracker item. Use `slack_search_public_and_private` with `<@{SLACK_USER_ID}>` and `from:@{SLACK_USERNAME}`, windowed by `after:/before:` (pad a day either side, because Slack's dates are UTC and yours may not be; never `on:`). Flag any channel/DM in the results that isn't configured, to add it; anchor any newly-found active thread to its tracker item so part 2 picks it up next run.
 
 Forms: `from:@username` / `to:@username` for DM search (the `from:<@ID>` form returns zero here); `<@{SLACK_USER_ID}>` is the mention token. If any read or search errors, STOP — never present a source as covered when it wasn't reached.
 

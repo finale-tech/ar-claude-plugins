@@ -28,7 +28,7 @@ If the output shows `Sessions found: 0`, report "No sessions found for [date]" a
 Using the extracted events, write a **linear narrative** that:
 
 - **Flows chronologically** as a single timeline across all projects
-- **Mentions the project name** (bolded) inline when it changes (e.g., "Switched to **billing-service**...")
+- **Mentions the project name** (bolded) inline when it changes (e.g., "Switched to **example-service**...")
 - **Groups into natural phases** with time-of-day headings (e.g., "Morning (10:30-11:15) — Debugging auth flow")
 - **Explains the thought process** — not just what was done, but why, and what was learned
 - **Calls out pivots explicitly** — when the approach changed: "first tried X, hit problem Y, switched to Z"

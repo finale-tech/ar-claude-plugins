@@ -49,7 +49,7 @@ When a gap is detected, propose the right artifact type:
 | Work stream progress | Jira ticket + contextual handoff comment |
 | Bug found in testing | Filed Jira bug with repro steps |
 | Code work with no PR | PR submission |
-| Tech debt identified from code reviews | Jira ticket (frame as deliverable, not "review") |
+| Tech debt identified from code reviews | Jira ticket |
 
 ## The Daily Check
 

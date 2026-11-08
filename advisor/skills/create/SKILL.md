@@ -12,7 +12,7 @@ Sets up the private data folder `~/.advisor/<name>/` from the plugin's starter t
 
 ## Step 1: Name the domain
 
-Use the name in the arguments if one was given. Otherwise ask for a short name: lowercase letters, digits and dashes (for example `dimension`).
+Use the name in the arguments if one was given. Otherwise ask for a short name: lowercase letters, digits and dashes (for example `career`).
 
 ## Step 2: Create the folder
 

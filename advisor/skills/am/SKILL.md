@@ -56,14 +56,13 @@ Reference files:
 1. `${CLAUDE_SKILL_DIR}/../../references/protocol.md` — the **AM Session** section
 2. `${CLAUDE_SKILL_DIR}/../../references/advisor-behavior.md`
 3. `${CLAUDE_SKILL_DIR}/../../references/artifact-rule.md`
-4. `${CLAUDE_SKILL_DIR}/../../references/jira-templates.md`
 
 User files:
-5. `${DOMAIN_PATH}/advisor/commitments.md` — due today / overdue
-6. `${DOMAIN_PATH}/advisor/session-log.md` — last 2-3 entries
-7. `${DOMAIN_PATH}/playbook.md`
-8. `${DOMAIN_PATH}/operating-manual.md` — the Patterns section
-9. `${DOMAIN_PATH}/advisor/status.md` — the `work-tracker` path under Domain Sources, plus any Cross-Domain Relevance status files.
+4. `${DOMAIN_PATH}/advisor/commitments.md` — due today / overdue
+5. `${DOMAIN_PATH}/advisor/session-log.md` — last 2-3 entries
+6. `${DOMAIN_PATH}/playbook.md`
+7. `${DOMAIN_PATH}/operating-manual.md` — the Patterns section
+8. `${DOMAIN_PATH}/advisor/status.md` — the `work-tracker` path under Domain Sources, plus any Cross-Domain Relevance status files.
 
 ### Step 2 — Read sitrep's facts (do not gather)
 
@@ -100,9 +99,9 @@ Non-zero exit → the brief is missing a section. STOP, fix it, re-run. On `BRIE
 
 Follow `protocol.md` AM Phase 2, using the daily brief as the data source. **Two turns, hard gate: ask first, conclude second — never in one pass.**
 
-**Turn 1 — ask, then STOP.** Ask only the load-bearing questions: the ones whose answer would change an ordering or a recommendation (e.g. "C-030 says delivered but PROJ-6632 is still open — which is right?"; "did the release cut today?"). Draw them from the **Commitment ↔ Jira Sync** section and any decision the day's ranking hinges on. Never re-ask a fact the sitrep already established. 3-5 sharp questions max. Then **stop and wait for the answers** — do NOT print the ranking, the wrap-up, or a "Start here" in this turn.
+**Turn 1 — ask, then STOP.** Ask only the load-bearing questions: the ones whose answer would change an ordering or a recommendation (e.g. "CAR-004 says delivered but PROJ-123 is still open — which is right?"; "did the release cut today?"). Draw them from the **Commitment ↔ Jira Sync** section and any decision the day's ranking hinges on. Never re-ask a fact the sitrep already established. 3-5 sharp questions max. Then **stop and wait for the answers** — do NOT print the ranking, the wrap-up, or a "Start here" in this turn.
 
-**Turn 2 — conclude (only after the answers).** With the answers in hand: flag artifact gaps as the *Analysis Expansion as Delivery Avoidance* pattern (if it's still in the manual) or a last-mile delivery gap; apply the `${DOMAIN_PATH}/playbook.md` commitment filter (surface only untracked items mapping to a playbook dimension, 1-2 candidates); then produce the Phase-2 wrap-up from `protocol.md` — bulleted and linked: **🔴 Due today/soon**, **Unresolved from today's AM session**, **Active commitments**, and **🗃️ Needs Prioritization (7 to triage now)** each with a named decision + a **Start here** pick. No emotional check-in. If a load-bearing question went unanswered, tag each dependent pick "assumes <X>" rather than presenting it as settled.
+**Turn 2 — conclude (only after the answers).** With the answers in hand: flag each artifact gap as the matching pattern from the Patterns section of `${DOMAIN_PATH}/operating-manual.md`, if one matches, or else as a last-mile delivery gap; apply the `${DOMAIN_PATH}/playbook.md` commitment filter (surface only untracked items mapping to a playbook dimension, 1-2 candidates); then produce the Phase-2 wrap-up from `protocol.md` — bulleted and linked: **🔴 Due today/soon**, **Unresolved from today's AM session**, **Active commitments**, and **🗃️ Needs Prioritization (7 to triage now)** each with a named decision + a **Start here** pick. No emotional check-in. If a load-bearing question went unanswered, tag each dependent pick "assumes <X>" rather than presenting it as settled.
 
 After: **append** a session entry to `${DOMAIN_PATH}/advisor/session-log.md` and **update** `${DOMAIN_PATH}/advisor/commitments.md` for any status changes. Then keep the log bounded: `bash ${CLAUDE_SKILL_DIR}/../../scripts/rotate-log.sh ${DOMAIN_PATH}` (archives older entries; no-op once within the window — don't stop on its `ROTATE_OK` line).
 
@@ -115,7 +114,7 @@ If `skip-sync` was passed, mark Step 7 `[-]` and stop after Phase 2.
 `am` cannot write to Jira — the Jira write tools are not in its `allowed-tools`, so the runtime makes a write impossible here. `am` drafts each action; you apply the ones you want. Follow `protocol.md` Phase 3:
 1. Read Proposed Actions from the brief. If none: "No artifact gaps detected. Board is current." and stop.
 2. If more than 4, present the top 3-4 by visibility impact; mention deferred ones.
-3. Draft each action with `jira-templates.md` — the ticket key, the field/transition, and the exact comment or body text — ready to paste. Do not attempt the write.
+3. Draft each action — the ticket key, the field/transition, and the exact comment or body text — ready to paste. Do not attempt the write.
 4. Present them as a numbered list; you apply the ones you want in the Jira UI.
 5. Update the brief's Proposed Actions to note which you said you'd apply.
 

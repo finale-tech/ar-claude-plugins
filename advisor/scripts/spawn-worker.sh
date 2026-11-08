@@ -11,9 +11,8 @@
 #   4. otherwise starts `claude --bg` in the task folder, resuming the task's
 #      newest past conversation when there is one.
 #
-# Workers start in `manual` permission mode (override: ADVISOR_WORKER_MODE) —
-# the user's global default is `plan`, which would leave a worker unable to
-# edit anything.
+# Workers start in `manual` permission mode (override: ADVISOR_WORKER_MODE), so
+# a worker can edit even when the user's default mode is `plan`.
 #
 # Usage: spawn-worker.sh <task-path> <worker-name> <brief-file> --tasks-root <dir> [--repo <dir>]
 #   --tasks-root  the tasks root (next-context.sh's TASKS_ROOT); the task must sit inside it.

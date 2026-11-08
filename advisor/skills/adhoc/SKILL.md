@@ -25,7 +25,7 @@ Non-zero exit → STOP with stderr. On success set `DOMAIN_PATH` from the `DOMAI
 
 ### Step 1.2: Load user context
 
-3. `${DOMAIN_PATH}/operating-manual.md` — Patterns, Instincts, and Daily Rules (trigger/instinct/response scenarios, the three-question framework)
+3. `${DOMAIN_PATH}/operating-manual.md` — Patterns, Instincts, and Daily Rules
 4. `${DOMAIN_PATH}/playbook.md` — Strategy, recalibration signals
 5. `${DOMAIN_PATH}/advisor/commitments.md` — Is this related to an active commitment?
 
@@ -42,21 +42,21 @@ Wait for their response. Do not jump to advice.
 Follow the Ad-hoc Session protocol from `protocol.md`:
 
 1. **Identify the relevant framework** from the user's data files:
-   - Workplace/interpersonal → `operating-manual.md` → Daily Rules (trigger/instinct/response scenarios) and Instincts
+   - Workplace/interpersonal → `operating-manual.md` → Daily Rules and Instincts
    - Strategic decision → `playbook.md` recalibration signals
-   - Emotional reaction → `operating-manual.md` → Daily Rules (the three-question framework)
+   - Emotional reaction → `operating-manual.md` → whatever Daily Rules and Instincts cover reactions
    - Behavioral pattern → `operating-manual.md` → Patterns
 2. **Name which framework applies** and why. If the relevant file (`operating-manual.md`, `playbook.md`) is missing or doesn't cover the situation, say so plainly — do not invent a framework or attribute one that isn't in the files.
-3. **Check for emotional weight** — are they reacting to what happened or what they think it means?
+3. **Check for emotional weight** — if the user is reacting to someone, apply what the manual says about reactions, if it says anything.
 4. **Produce actionable output:** specific script, action plan, or "no action needed" with reasoning
 
 ## Step 4: Update Files
 
 1. **Append** session entry to `${DOMAIN_PATH}/advisor/session-log.md` with type "ad-hoc" and the topic
-2. **Update** `${DOMAIN_PATH}/advisor/commitments.md` if new commitments were created. Before creating any commitment, apply the playbook filter: does this item map to a playbook dimension (Design, Ownership, Influence, Communication, Mentoring) AND carry external accountability or credibility cost? If not, the item stays in the work tracker only. Always confirm with the user before creating a commitment.
+2. **Update** `${DOMAIN_PATH}/advisor/commitments.md` if new commitments were created. Before creating any commitment, apply the playbook filter: does this item map to one of the dimensions in `${DOMAIN_PATH}/playbook.md` AND carry external accountability or credibility cost? If not, the item stays in the work tracker only. Always confirm with the user before creating a commitment.
 
 ## Behavior
 
-Follow ALL rules from `advisor-behavior.md`. Be direct — if the framework says "let it go," say "let it go." If the user is pre-defending in the session itself, name it.
+Follow ALL rules from `advisor-behavior.md`. Be direct — if the framework's answer is to do nothing, say exactly that. If the user shows one of the manual's patterns in the session itself, name it.
 
 $ARGUMENTS

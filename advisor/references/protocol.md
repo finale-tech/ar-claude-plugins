@@ -36,7 +36,7 @@ Every session skill follows this sequence:
 ## AM Session — Morning Check-in
 
 **Duration:** ~25 minutes (Gather: ~5 min, Interact: ~12 min, Sync: ~8 min)
-**Purpose:** Recap yesterday, hold accountability, detect artifact gaps, sync Jira board, set the day's priorities.
+**Purpose:** Recap yesterday, hold accountability, detect artifact gaps, draft the Jira updates, set the day's priorities.
 
 The AM session has three phases: Gather, Interact, and Sync.
 
@@ -59,7 +59,7 @@ Deep sweep of all available context. Runs before the interactive session begins.
 2. **Todo resolution check (pre-filter):** Before classifying any work item as an artifact gap, check if it has a matching RESOLVED entry in the todo file (loaded in Step 1.5 via `./advisor/status.md` work-tracker field). Match on: PR number, ticket ID, or work description substring. If a match is found and the todo status is Resolved/Done, mark the work item as **Covered (resolved in todo tracker)** and skip Artifact Rule evaluation for that item. The todo tracker is the authoritative record for explicitly tracked and closed work.
 
    **GitHub review state check:** For any work item where a pending draft review was noted (match pattern: "pending draft" + PR number in the work item text or associated todo entry), check the actual GitHub state:
-   1. Extract the PR number from the work item text (e.g., "#1124" → 1124)
+   1. Extract the PR number from the work item text (e.g., "#42" → 42)
    2. Find the repo by reading `${DOMAIN_PATH}/pr_reviews/pr_{NUMBER}_review.md` (check first line for a GitHub URL) or from the todo entry
    3. Query the PR's reviews live and count those in state `PENDING`. Either route satisfies this — use whichever is available in the runtime (see "GitHub access" below):
       - `gh` CLI: `gh pr view {NUMBER} --repo {OWNER}/{REPO} --json reviews --jq '[.reviews[] | select(.state == "PENDING")] | length'`
@@ -124,9 +124,9 @@ If no worklog exists for yesterday, note "worklog not available — coverage may
 
 The AM accountability and priority-setting flow, reading from the daily brief. **Ask before concluding: the questions (step 1) and the wrap-up (step 4) are two separate turns with a hard gate between them — never produce both in one pass.**
 
-1. **Ask the load-bearing questions, then STOP.** Work through yesterday's commitments and key items, asking only the questions whose answer would change an ordering or a recommendation — use the Commitment <> Jira Sync section for concrete data (e.g., "C-030 says delivered but PROJ-6632 is still open — which is right?"), plus any decision the day's ranking hinges on. Never re-ask a fact the sitrep already established. Specific yes/no or short-answer, 3-5 max. Then **wait for the answers** — do not print the ranking, wrap-up, or "Start here" yet.
+1. **Ask the load-bearing questions, then STOP.** Work through yesterday's commitments and key items, asking only the questions whose answer would change an ordering or a recommendation — use the Commitment <> Jira Sync section for concrete data (e.g., "CAR-004 says delivered but PROJ-123 is still open — which is right?"), plus any decision the day's ranking hinges on. Never re-ask a fact the sitrep already established. Specific yes/no or short-answer, 3-5 max. Then **wait for the answers** — do not print the ranking, wrap-up, or "Start here" yet.
    - On slips: check against the Patterns section of `./operating-manual.md` and name the pattern if one matches.
-   - Artifact gaps can be flagged as the *Analysis Expansion as Delivery Avoidance* pattern (if it's still in the manual) or a last-mile delivery gap.
+   - Flag an artifact gap as the matching pattern from the Patterns section, if one matches, or else as a last-mile delivery gap.
 2. **Log brief signals** from the answers.
 3. **Surface untracked work (playbook-filtered):** Same filter as before (maps to playbook dimension + external accountability). Now also surfaces artifact gaps as commitment candidates.
 4. **Output (only after the step-1 answers):** the end-of-session wrap-up (format below) — bulleted and linked, with the 🗃️ Needs Prioritization section triaging 7 items to a named decision. If a load-bearing question went unanswered, tag each dependent pick "assumes <X>" rather than presenting it as settled. Quick-win artifact gaps can be flagged inline as candidates. Weave any relevant Daily Rules principle from `./operating-manual.md` into the interactive discussion rather than the wrap-up.
@@ -156,24 +156,22 @@ Deliver the wrap-up as **bulleted lists** (never tables). Link wherever a link e
 - *(<N-7> more — full list in [the work tracker](<path>))*
 ```
 
-Pick the 7 to **help decide**, not just the 7 oldest: weight toward (a) origination / visibility items the Pattern-#4 counter would otherwise bury, (b) anything that just gained a waiting stakeholder, (c) genuine quick wins — then oldest-logged to fill. Each bullet ends with a named decision so the section moves the backlog, and the **Start here** line gives one clear next pick.
+Pick the 7 to **help decide**, not just the 7 oldest: weight toward (a) origination / visibility items (work the user starts, not tickets they're handed) that execution work would otherwise bury, (b) anything that just gained a waiting stakeholder, (c) genuine quick wins — then oldest-logged to fill. Each bullet ends with a named decision so the section moves the backlog, and the **Start here** line gives one clear next pick.
 
 ---
 
-### Phase 3 — Sync
+### Phase 3 — Sync (draft only)
 
-Present artifact gaps and proposed actions from the daily brief. **Nothing gets written to Jira without explicit user approval.**
+Present artifact gaps and proposed actions from the daily brief. **`am` never writes to Jira** — its `allowed-tools` has no Jira write tool. It drafts each action; the user applies the ones they want.
 
 **Time budget:** ~8 minutes max. If more than 3-4 actions, prioritize by visibility impact and defer the rest.
 
 1. Read the Proposed Actions from the daily brief.
 2. For each proposed action:
    a. State what the action is (create ticket, update comment, change status, flag for Confluence page creation).
-   b. Draft the content using the templates from `jira-templates.md`.
-   c. Present the draft and **wait for approval**.
-   d. On approval, execute the Jira API call using Atlassian MCP tools.
-   e. For non-Jira artifacts (Confluence pages, PRs), flag them as manual follow-ups.
-3. After all actions are processed, update the daily brief's Proposed Actions section to reflect what was synced.
+   b. Draft the content, ready to paste.
+   c. For non-Jira artifacts (Confluence pages, PRs), flag them as manual follow-ups.
+3. Present the drafts as a numbered list, then update the daily brief's Proposed Actions section to note which ones the user said they'd apply.
 
 **Draft format for presenting each action:**
 
@@ -182,9 +180,7 @@ Present artifact gaps and proposed actions from the daily brief. **Nothing gets 
 
 **Ticket:** [New ticket / PROJ-XXXX comment update / status change]
 
-[Drafted content using the appropriate template from jira-templates.md]
-
-**Approve this action? (yes/no/edit)**
+[Drafted content]
 ```
 
 ---
@@ -203,7 +199,7 @@ The tactical PM layer between `am` runs. `next` is a **thin PM**: each check-in 
 
 ### Unattended setup (allow rules — the user's call; nothing here edits settings)
 
-A timer-fired check-in runs as a system prompt, so the skill's own `allowed-tools` pre-approval does **not** cover it. Without allow rules each fire stalls on a permission prompt (live test: the PM blocked on its first `bash …/preflight.sh`). A stalled session shows as `waitingFor=permission prompt` in the snapshot; the user clears it with `claude attach <id>`. The Slack/Jira/`gh pr` reads the scan uses are already in the user's allow list. To run unattended, add to `permissions.allow` in `settings.json`:
+A timer-fired check-in runs as a system prompt, so the skill's own `allowed-tools` pre-approval does **not** cover it. Without allow rules each fire stalls on a permission prompt (live test: the PM blocked on its first `bash …/preflight.sh`). A stalled session shows as `waitingFor=permission prompt` in the snapshot; the user clears it with `claude attach <id>`. To run unattended, add to `permissions.allow` in `settings.json` the following, plus the Slack, Jira and `gh pr` reads the scan uses if your settings don't already allow them:
 
 - `Bash(bash <advisor plugin dir>/skills/*/../../scripts/<script>*)` for each of `preflight.sh`, `next-context.sh`, `validate.sh`, `append-log.sh`, `rotate-log.sh`. Write the path in the form the skills actually issue: `${CLAUDE_SKILL_DIR}` is substituted as text, so the command keeps its `skills/<skill>/../../scripts/` segment (live test), and a rule written against the normalized `<plugin dir>/scripts/…` path will likely not match it.
 - `Skill(advisor:sitrep)` — the scan subagent
@@ -236,7 +232,7 @@ Never use `claude logs` as a status source — it is a terminal screen scrape, n
 4. **Due today.**
 5. **Stale >3 days needing a nudge.**
 
-Within a tier, smallest effort-to-ship first — clear the 2-minute loops before the multi-hour ones. Give origination items (the counter to the *Staying in the Ticket Queue* pattern) a visibility bump so pure-execution work never buries them for more than a day. One drift line per cycle, mapped to a pattern in the Patterns section of `operating-manual.md`.
+Within a tier, smallest effort-to-ship first — clear the 2-minute loops before the multi-hour ones. Give origination items (work the user starts, not tickets they're handed) a visibility bump so pure-execution work never buries them for more than a day. One drift line per cycle, mapped to a pattern in the Patterns section of `operating-manual.md`.
 
 ### `.cache/next-state.md` — loop bookkeeping (not the tracker)
 
@@ -246,19 +242,19 @@ Regenerated each cycle; `Notified` and `Shipped today` are append-only within th
 - date: 2026-07-15
 - loop: on
 - next-job-id: <CronCreate id of the pending one-shot, or NONE>
-- last-checkin: 2026-07-15T14:32-0700
+- last-checkin: 2026-07-15T14:32+0000
 - cycle: 3
 
 ## Active (max 3)
-1. PROJ-6730 — post progress comment | task-path <tasks-root>/PROJ-6730 | worker 106d779c | repo ~/code/billing-service | started 2026-07-15T14:05-0700 | last-checked 14:32
-2. PR #2782 — clear CHANGES_REQUESTED | task-path - | worker - | started 13:30 | last-checked 14:32
-3. C-048 design doc — blocked on screenshots | task-path <tasks-root>/design-doc | worker d68d3e73 | started 11:00 | last-checked 14:32
+1. PROJ-101 — post progress comment | task-path <tasks-root>/PROJ-101 | worker 1a2b3c4d | repo ~/code/example-service | started 2026-07-15T14:05+0000 | last-checked 14:32
+2. PR #42 — clear CHANGES_REQUESTED | task-path - | worker - | started 13:30 | last-checked 14:32
+3. CAR-003 design doc — waiting on review | task-path <tasks-root>/design-doc | worker 5e6f7a8b | started 11:00 | last-checked 14:32
 
 ## Pending suggestion
 - <one line: what was proposed, to whom, when> | asked 14:32 | unanswered
 
 ## Notified
-- 2026-07-15T14:32-0700 — PR #2782 approved, waiting to merge
+- 2026-07-15T14:32+0000 — PR #42 approved, waiting to merge
 
 ## Shipped today
 - (none yet)
@@ -271,8 +267,8 @@ Track workers by **id** (`claude agents` short id), never by name: Claude auto-r
 One focused suggestion, written as a PM talking to the user, with enough context to decide **before** the question: what you checked, what you found (with how it was verified), the next step, then a yes/no.
 
 ```
-Task X (PROJ-7245): I just checked — the build is deployed to QA (pipeline green 13:52, verified live). Next step is the verification comment on the ticket plus a ping to the QA lead. Should I hand that to the 7245 worker?
-Then: PR #2830 (2 unresolved threads from a reviewer, ~15 min).
+Task X (PROJ-102): I just checked — the build is deployed to QA (pipeline green 13:52, verified live). Next step is the verification comment on the ticket plus a ping to the QA lead. Should I hand that to the PROJ-102 worker?
+Then: PR #43 (2 unresolved threads from a reviewer, ~15 min).
 ```
 
 - If the previous suggestion is still unanswered and nothing changed: one line, `Still pending: <suggestion>?` — do not stack new questions.
@@ -284,7 +280,7 @@ Then: PR #2830 (2 unresolved threads from a reviewer, ~15 min).
 Check the worker list first (`WORKER` lines from `next-context.sh`), then:
 
 1. **A worker is already live for the task** (`WORKER_LIVE`, interactive or background) → `SendMessage` it the brief with `notify_when_idle: true`. Never `--resume` a live session: it starts a *copy*.
-2. **Otherwise** → write the brief to a temp file and run `scripts/spawn-worker.sh <task-path> <name> <brief-file> --tasks-root <TASKS_ROOT> [--repo <dir>]`. It promotes a single-file task to its own folder (`tasks/foo.md` → `tasks/foo/foo.md`; ask first, and fix links to the old path in the tracker), appends the brief to `TASK.md`, resumes the task folder's newest past conversation if there is one, else starts fresh, and starts the worker in `manual` permission mode (the user's global default is `plan`, which can't edit anything).
+2. **Otherwise** → write the brief to a temp file and run `scripts/spawn-worker.sh <task-path> <name> <brief-file> --tasks-root <TASKS_ROOT> [--repo <dir>]`. It promotes a single-file task to its own folder (`tasks/foo.md` → `tasks/foo/foo.md`; ask first, and fix links to the old path in the tracker), appends the brief to `TASK.md`, resumes the task folder's newest past conversation if there is one, else starts fresh, and starts the worker in `manual` permission mode, so it can edit even when the user's default mode is `plan`.
 3. Print `Worker <name> started (id <id>)`. Attach in any tab: `claude attach <id>`, store the id in Active, and fire a macOS notification only if a worker later needs the user.
 
 Ask for the code repo once per task and remember it (`--add-dir`). The PM never asks a worker to do anything the user's own permissions would block, and never to post to Jira/Slack/GitHub without the user's explicit OK.
@@ -313,20 +309,20 @@ Ask for the code repo once per task and remember it (`--add-dir`). The PM never 
 
 1. **Listen first.** Let the user describe the situation fully before responding.
 2. **Identify the relevant framework:**
-   - Workplace/interpersonal interaction → `./operating-manual.md` → Daily Rules (trigger/instinct/response scenarios) and Instincts
+   - Workplace/interpersonal interaction → `./operating-manual.md` → Daily Rules and Instincts
    - Strategic/career decision → `./playbook.md` strategy and recalibration signals
-   - Emotional reaction → `./operating-manual.md` → Daily Rules (the three-question framework)
+   - Emotional reaction → `./operating-manual.md` → whatever Daily Rules and Instincts cover reactions
    - Behavioral pattern → `./operating-manual.md` → Patterns
-3. **Apply the framework explicitly:** Name which framework applies and why.
-4. **Check for emotional weight:** Is the user reacting to what was said, or what they think was meant? Apply the "most boring explanation" test.
+3. **Apply the framework explicitly:** Name which framework applies and why. If the manual doesn't cover the situation, say so — never invent a rule and attribute it to the manual.
+4. **Check for emotional weight:** if the user is reacting to someone, apply what the manual says about reactions, if it says anything.
 5. **Output:** Specific response script or action plan (not generic advice).
 6. **Log any new commitments** in `./advisor/commitments.md`. Before creating, apply the commitment filter: does this map to a playbook dimension AND carry external accountability or credibility cost? If it doesn't pass, it stays in the work tracker only. Always confirm with the user.
 7. **Append entry to `./advisor/session-log.md`** with type "ad-hoc" and the topic.
 
 ### Ad-hoc Guidelines
 
-- Don't soften the message. If the framework says "let it go," say "let it go."
-- If the user is pre-defending or over-explaining in the session itself, name it.
+- Don't soften the message. If the framework's answer is to do nothing, say exactly that.
+- If the user shows one of the manual's patterns in the session itself, name it.
 - Provide a specific script when the situation calls for a response to someone.
 - If the situation requires no action, say so clearly: "This requires no action. Here's why."
 

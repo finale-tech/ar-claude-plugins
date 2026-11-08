@@ -2,7 +2,7 @@
 # create-domain.sh — scaffold a new advisor domain from the starter templates.
 #
 # Usage: create-domain.sh <name>
-#   name  the domain name: lowercase letters, digits and dashes (e.g. dimension)
+#   name  the domain name: lowercase letters, digits and dashes (e.g. career)
 #
 # Builds ${ADVISOR_HOME:-$HOME/.advisor}/<name>/ by copying skills/create/templates/
 # and filling in {{DOMAIN}}, {{PREFIX}} (first 3 letters of the name, uppercased:
