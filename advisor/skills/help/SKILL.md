@@ -83,8 +83,8 @@ Each domain is one private folder, `~/.advisor/<name>/`. With a single domain ev
 
 ## Getting Started
 
-1. Run `/advisor:create <name>`. It creates `~/.advisor/<name>/` from the starter templates and asks for your name and Slack/GitHub IDs.
-2. Fill in `advisor/status.md` → `start_date`, Domain Sources, Repos and Slack Sources. The work tracker is already scaffolded as `work-tracker.md` in your folder; point `work-tracker` elsewhere if you keep one already.
+1. Run `/advisor:create <name>`. It creates `~/.advisor/<name>/` from the starter templates and asks for your name, Slack/GitHub IDs and your start date in the role.
+2. Fill in `advisor/status.md` → Domain Sources, Repos and Slack Sources. The work tracker is already scaffolded as `work-tracker.md` in your folder; point `work-tracker` elsewhere if you keep one already.
 3. Each morning: `/advisor:sitrep` then `/advisor:am`.
 4. Through the day: say yes when `am` offers the loop (or run `/advisor:next start`). For check-ins that run without you at the keyboard, add the allow rules in `references/protocol.md` → "Unattended setup".
 5. Weekly: `/advisor:retro`.

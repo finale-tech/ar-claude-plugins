@@ -59,21 +59,19 @@ Everything in this playbook maps to closing that gap.
 - Go to every team lunch. No exceptions.
 
 **Manager touchpoints:** Arrival orientation, mid-week check-in if natural, end-of-week brief Slack update on progress.
-**Checkpoint:** Can explain the system architecture without notes. 1 PR submitted. Every team member knows your name. Your manager hasn't had to chase you for anything. Identified the team's biggest pain point or tech debt area.
+**Checkpoint:** Can explain the system architecture without notes. First PR submitted. Every team member knows your name. Your manager hasn't had to chase you for anything. Identified the team's biggest pain point or tech debt area.
 
 ---
 
 ### Week 2: Contribute
 
-**Theme:** Ship consistently. Build review credibility. Find the pain nobody owns.
+**Theme:** Ship consistently. Build review credibility.
 
 **Technical:**
 - Address first PR feedback quickly and gracefully. "Good catch, updated." Never defend — learn.
 - Pick up second and third tickets. Establish rhythm: one in review, one in progress.
 - Start reviewing other people's PRs. Leave substantive comments — edge cases, test suggestions, readability. Not just "LGTM."
-- Identify one small, visible tech debt item (flaky tests, inconsistent error handling, missing logging, outdated dependency)
-- Get permission to fix it: "I noticed [X] while reading the code — would it be useful if I cleaned that up?"
-- Ship the fix. Unsolicited improvement creates disproportionate impression.
+- When you notice tech debt while reading the code, write it down. It is the raw material for Weeks 5–8; it is not this week's work.
 
 **Relationship:**
 - Establish regular 1:1 with your manager if not already set: "Would it be useful to do a weekly 1:1? Even 15 minutes."
@@ -81,7 +79,7 @@ Everything in this playbook maps to closing that gap.
 - Ask: "What's the most important thing for the team to deliver this sprint?" Align your next ticket to that answer.
 - Continue joining all team lunches and social moments.
 
-**Checkpoint:** 3–4 PRs merged. 2+ meaningful code reviews given. 1:1 cadence established with your manager. One unsolicited tech debt improvement shipped. Teammates starting to tag you in discussions or ask your opinion.
+**Checkpoint:** PRs merging at a steady rhythm. Meaningful code reviews given. 1:1 cadence established with your manager. Teammates starting to tag you in discussions or ask your opinion.
 
 ### Week 3: Accelerate
 
@@ -102,7 +100,7 @@ Everything in this playbook maps to closing that gap.
 - If a junior engineer is stuck on something, help by pointing them in the right direction — don't take over
 - Begin participating in design discussions. Frame contributions as questions: "Have we considered X?" rather than "We should do Z."
 
-**Checkpoint:** 6–8 PRs merged including at least one complex ticket. Active in design discussions and reviews. Contributed to documentation. Positive midpoint feedback from your manager. At least one teammate has come to you for help. Understand production and monitoring.
+**Checkpoint:** At least one complex ticket merged. Active in design discussions and reviews. Contributed to documentation. Positive midpoint feedback from your manager. At least one teammate has come to you for help. Understand production and monitoring.
 
 ---
 
@@ -122,7 +120,7 @@ Everything in this playbook maps to closing that gap.
 - Month-end 1:1 with your manager: "It's been a month. How do you feel things are going? Where should I focus next?"
 - Write private 30-day retrospective: what you shipped, what you learned, where to improve, team's biggest challenge ahead.
 
-**Checkpoint:** 10+ PRs merged across varying complexity. Informal ownership of at least one service or area. Trusted code reviewer. At least one unsolicited initiative proposed/shipped. Multiple teammates would advocate for you. Can debug production incidents.
+**Checkpoint:** PRs merged across varying complexity. Informal ownership of at least one service or area. Trusted code reviewer. At least one unsolicited initiative proposed/shipped. Multiple teammates would advocate for you. Can debug production incidents.
 
 ---
 
@@ -158,9 +156,10 @@ These help you distinguish "on track" from "drifting" without waiting for formal
 
 ### Weeks 5–8: Establish Staff-Level Behaviors
 
-**Theme:** Shift from executing tasks to shaping technical direction.
+**Theme:** Shift from executing tasks to shaping technical direction. Find the pain nobody owns.
 
 **Technical — start operating at the system level:**
+- Start with the tech debt you noted in your first month: pick one small, visible item (flaky tests, inconsistent error handling, missing logging, outdated dependency). Get permission to fix it: "I noticed [X] while reading the code — would it be useful if I cleaned that up?" Ship the fix. Unsolicited improvement creates a disproportionate impression, and by now you know which pain is real.
 - Identify a systemic issue (not just a bug — a pattern of problems, an architectural gap, a scalability bottleneck, a missing abstraction)
 - Write a short design doc or tech proposal: problem statement, options considered, recommended approach, tradeoffs, rollout plan. 1–3 pages max. Share with your manager first, then broader team.
 - This is the single biggest signal of Staff-level work. Anyone can close tickets. Staff engineers define what the tickets should be.

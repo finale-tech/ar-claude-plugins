@@ -22,20 +22,21 @@ Non-zero exit → STOP and show stderr (the script refuses to overwrite an exist
 
 ## Step 3: Record who you are
 
-Ask for these five in one message:
+Ask for these six in one message:
 
 1. **Full name**
 2. **Aliases** — other names or initials people use for you in meetings and Slack (optional; the default is your first name)
 3. **Slack member ID** — in Slack, open your profile, then **⋮**, then **Copy member ID** (it starts with `U`)
 4. **Slack handle**
 5. **GitHub login** — `gh api user -q .login` prints it
+6. **Start date** — your first day in the role, as `YYYY-MM-DD`. The plan is indexed by week, and this is how the advisor knows which week you are in (optional: leave it blank if the domain is not a new role)
 
-Write the answers into the `## You` section of `${DOMAIN_PATH}/advisor/status.md`, replacing each field's `[placeholder]` (keep the aliases placeholder if none were given). Change only those five lines.
+Write answers 1–5 into the `## You` section of `${DOMAIN_PATH}/advisor/status.md`, replacing each field's `[placeholder]` (keep the aliases placeholder if none were given), and answer 6 into the `start_date:` line of the front matter at the top of the same file (keep its placeholder if none was given). Change only those six lines.
 
 Then run `bash ${CLAUDE_SKILL_DIR}/../../scripts/preflight.sh <name>`. It must end with `PREFLIGHT_OK`; if it fails, fix the field it names.
 
 ## Step 4: Say what's left
 
-> Domain `<name>` is ready at `<DOMAIN_PATH>`. Before the first `/advisor:sitrep`, fill in `advisor/status.md` → Domain Sources, Repos and Slack Sources, and set `start_date` there if you want the advisor to know which week of the role you are in. Fill in `playbook.md` → "What You Know So Far" as you learn it. The plan comes from the plugin's library. `operating-manual.md` starts empty and is all yours: write the patterns you are working on, your instincts and your own rules in full; `retro` adds to it as the weeks go by.
+> Domain `<name>` is ready at `<DOMAIN_PATH>`. Before the first `/advisor:sitrep`, fill in `advisor/status.md` → Domain Sources, Repos and Slack Sources. Fill in `playbook.md` → "What You Know So Far" as you learn it. The plan comes from the plugin's library. `operating-manual.md` starts empty and is all yours: write the patterns you are working on, your instincts and your own rules in full; `retro` adds to it as the weeks go by.
 
 $ARGUMENTS
