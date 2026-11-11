@@ -77,7 +77,7 @@ Each domain is one private folder, `~/.advisor/<name>/`. With a single domain ev
 **Advisor-managed files** (in `advisor/`):
 - `commitments.md` — formal commitment tracker with IDs, due dates, slip counts
 - `session-log.md` — session history + deliberation record (append-only, rotated)
-- `status.md` — portable snapshot, plus everything you set once: `start_date` (your first day in the role, so the advisor knows which week you are in), `## You` (who you are), Domain Sources (`work-tracker`, `meeting-transcripts`, `tasks-root`, `knowledge`), `## Repos` (one `owner/repo` per line), Slack Sources
+- `status.md` — portable snapshot, plus everything you set once: `start_date` (your first day in the role, so the advisor knows which week you are in), `## You` (who you are), Domain Sources (`work-tracker`, `meeting-transcripts`, `tasks-root`), `## Repos` (one `owner/repo` per line), Slack Sources
 - `daily-brief-YYYY-MM-DD.md` — `am`'s coaching brief (opinion layer over the facts)
 - `.cache/next-state.md` — `next` loop bookkeeping (loop on/off, timer id, active-3 with worker ids, pending suggestion, notified)
 

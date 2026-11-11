@@ -50,7 +50,6 @@ Follow the Ad-hoc Session protocol from `protocol.md`:
    - Strategic decision → the library `playbook.md` (`${LIBRARY_PATH}/playbook.md`: strategy, recalibration signals), with the user's context from their `playbook.md`
    - Emotional reaction → whatever Daily Rules and Instincts cover reactions
    - Behavioral pattern → Patterns
-   If `advisor/status.md` → Domain Sources has a `knowledge` folder and the situation turns on the company, product or market, open the note that covers it.
 2. **Name which framework applies** and why. If neither the library nor the user's files cover the situation, say so plainly — do not invent a framework or attribute one that isn't there.
 3. **Check for emotional weight** — if the user is reacting to someone, apply what the manual says about reactions, if it says anything.
 4. **Produce actionable output:** specific script, action plan, or "no action needed" with reasoning
