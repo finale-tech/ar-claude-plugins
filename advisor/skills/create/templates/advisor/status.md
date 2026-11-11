@@ -6,13 +6,13 @@
 domain: {{DOMAIN}}
 goal: Close the Senior → Staff gap in the new role
 updated: {{TODAY}}
-phase: Week 1 — Absorb
+phase: Week 1 (Days 1–7): Set up
 start_date: [YYYY-MM-DD — your first day in the role; optional]
 ---
 
 ## Current Status
 
-- New role; the playbook's Week 1 (Absorb) is starting
+- New role; the playbook's Week 1 (Set up) is starting
 - "What You Know So Far" in `playbook.md` is not filled in yet: team, architecture, manager expectations
 - No commitments yet; the first `/advisor:sitrep` and `/advisor:am` are pending
 

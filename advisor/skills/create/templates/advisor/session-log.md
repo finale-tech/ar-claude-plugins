@@ -18,7 +18,7 @@
 - No commitments yet
 
 **Initial state:**
-- New role; playbook Week 1 (Absorb) about to start
+- New role; playbook Week 1 (Set up) about to start
 - "What You Know So Far" in `playbook.md` is still to be filled in
 
 **Commitments made:**
