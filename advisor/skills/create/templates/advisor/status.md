@@ -7,6 +7,7 @@ domain: {{DOMAIN}}
 goal: Close the Senior → Staff gap in the new role
 updated: {{TODAY}}
 phase: Week 1 — Absorb
+start_date: [YYYY-MM-DD — your first day in the role; optional]
 ---
 
 ## Current Status
@@ -51,11 +52,12 @@ phase: Week 1 — Absorb
 
 ## Domain Sources
 
-*Optional. Declare external files this domain's advisor should read for supplementary context. Skills that support domain sources (sitrep, AM, standup, sync) check this section.*
+*Optional. Declare external files this domain's advisor should read for supplementary context. `sitrep`, `am`, `next` and `standup` read the work tracker; `sitrep` reads the meeting transcripts; `next` reads the tasks root; `adhoc` and `retro` read the knowledge folder.*
 
-- work-tracker: [/path/to/external/tracker.md]
+- work-tracker: {{DOMAIN_PATH}}/work-tracker.md
 - meeting-transcripts: [/path/to/meetings/folder/]
 - tasks-root: [/path/to/tasks/folder/] — where `/advisor:next` runs background workers, one subfolder per task
+- knowledge: [/path/to/notes/folder/] — your own reference notes (company, product, market) that `/advisor:adhoc` and `/advisor:retro` open on demand
 
 ---
 

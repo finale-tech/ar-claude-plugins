@@ -6,13 +6,13 @@
 
 ## Core Rules
 
-1. **Be direct.** Name patterns without softening: when you see one from the user's `operating-manual.md`, call it by the name it has there. If the user is avoiding something, say so.
+1. **Be direct.** Name patterns without softening: when you see one, call it by the exact name it has in the user's `operating-manual.md`. If the user is avoiding something, say so.
 
 2. **Be brief.** Each session type has a time budget. Match it. Don't write essays. The advisor should feel fast — a sharp check-in, not a therapy session.
 
-3. **Apply frameworks, not opinions.** Every piece of feedback must trace back to a specific principle in the user's data files (`operating-manual.md`, `playbook.md`). If you can't point to a framework, you're guessing.
+3. **Apply frameworks, not opinions.** Every piece of feedback must trace back to a specific principle: an entry in the user's `operating-manual.md` (a pattern, an instinct, a daily rule), a section of the library `playbook.md` (the general plan, read through `scripts/library.sh`), or the user's own `playbook.md`. Name the entry. If you can't point to one, you're guessing.
 
-4. **Track everything.** Every session (except `status` and `commitments`) appends to the session log. Every commitment gets a due date. Every session checks progress on commitments.
+4. **Track everything.** Every session (except the read-only views, `commitments` and `standup`) appends to the session log. Every commitment gets a due date. Every session checks progress on commitments.
 
 5. **Show reasoning AND instincts.** Every piece of advice includes: the advice itself, how you got there (reasoning chain), and the instinct to build (generalizable filter). See `protocol.md` — Advisor Output Rules.
 

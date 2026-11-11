@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # gather.sh — deterministic local data sweep for the sitrep/am gather phase.
-# Runs the session extractor ONCE per day into a stable cache, greps meeting
-# transcripts for the user's action items, counts work-tracker todos, and writes
-# a manifest plus a source-coverage checklist. Does NOT touch Slack or Jira —
+# Runs the session extractor ONCE per day into a stable cache, decides which
+# days need a worklog (none yet, today, or a closed day whose worklog predates
+# its last session), greps meeting transcripts for the user's action items,
+# counts work-tracker todos, and writes a manifest plus a source-coverage
+# checklist. Does NOT touch Slack or Jira —
 # those need MCP tools the model calls directly (and then checks off in the
 # coverage file). Run this once per session; never re-run the extractor to page
 # its output.
@@ -76,10 +78,35 @@ session_days=0
 active_dates=""
 worklog_needed=""
 worklog_existing=""
+worklog_stale=""
 # Today is never "closed" — sitrep's range now runs through NOW, so a same-day
 # rerun must re-narrate today's worklog with whatever's new, not skip it because
 # an earlier-today run already wrote a (now-stale) file for that date.
 SYSTEM_TODAY="$(date '+%Y-%m-%d')"
+
+# A closed day's worklog is stale when the file was written BEFORE that day's
+# last session event: an afternoon sitrep narrated the day up to that moment and
+# the evening's sessions never reached the file. Compare the worklog's mtime with
+# the latest `TIME: HH:MM` in the day's extractor output. Exit 0 = stale.
+# A hand-edited worklog (e.g. a Cowork day narrated by hand) has a fresh mtime
+# and is left alone.
+worklog_is_stale() {
+  python3 -I - "$1" "$2" "$3" <<'PY'
+import datetime, os, re, sys
+sessions, worklog, day = sys.argv[1:4]
+last = None
+with open(sessions, encoding="utf-8", errors="replace") as f:
+    for line in f:
+        m = re.match(r'^TIME: (\d{2}:\d{2})\s*$', line)
+        if m and (last is None or m.group(1) > last):
+            last = m.group(1)
+if last is None:
+    sys.exit(1)
+last_epoch = datetime.datetime.strptime("%s %s" % (day, last), "%Y-%m-%d %H:%M").timestamp()
+sys.exit(0 if os.path.getmtime(worklog) < last_epoch else 1)
+PY
+}
+
 for d in $dates; do
   out="$CACHE/sessions-$d.txt"
   if ! python3 "$EXTRACT_SCRIPT" "$d" > "$out" 2>/dev/null; then
@@ -90,18 +117,23 @@ for d in $dates; do
   elif [ -s "$out" ]; then
     session_days=$((session_days + 1))
     active_dates="$active_dates $d"
-    # Closed worklist: a past active date needs a worklog only if it has none
-    # yet. Today is the exception — always regenerate it while the day is open.
+    # Closed worklist: a past active date needs a worklog if it has none yet, or
+    # if the one it has is stale (see worklog_is_stale). Today is always
+    # regenerated while the day is open.
+    wl="$DOMAIN_PATH/worklog-$d.md"
     if [ "$d" = "$SYSTEM_TODAY" ]; then
       worklog_needed="$worklog_needed $d"
-    elif [ -f "$DOMAIN_PATH/worklog-$d.md" ]; then
-      worklog_existing="$worklog_existing $d"
-    else
+    elif [ ! -f "$wl" ]; then
       worklog_needed="$worklog_needed $d"
+    elif worklog_is_stale "$out" "$wl" "$d"; then
+      worklog_stale="$worklog_stale $d"
+      worklog_needed="$worklog_needed $d"
+    else
+      worklog_existing="$worklog_existing $d"
     fi
   fi
 done
-active_dates="${active_dates# }"; worklog_needed="${worklog_needed# }"; worklog_existing="${worklog_existing# }"
+active_dates="${active_dates# }"; worklog_needed="${worklog_needed# }"; worklog_existing="${worklog_existing# }"; worklog_stale="${worklog_stale# }"
 
 # --- Phase B: transcript todo candidates (single sweep) ---
 CAND="$CACHE/todo-candidates.txt"
@@ -127,12 +159,34 @@ if [ -n "$WORK_TRACKER" ] && [ -f "$WORK_TRACKER" ]; then
   wt_open=$((md_open + html_all - html_done))
   wt_done=$((md_done + html_done))
 
-  # Assertion (pipeline contract, guideline 1): a non-empty tracker that yields
-  # zero checkboxes of any recognized kind means the counter cannot parse it —
-  # fail loudly rather than emit a misleading 0.
-  if [ -s "$WORK_TRACKER" ] && [ "$((wt_open + wt_done))" -eq 0 ]; then
-    echo "gather.sh: work-tracker '$WORK_TRACKER' is non-empty but matched no todo checkboxes (expected markdown '- [ ]' or '<input type=\"checkbox\">'). Counter cannot parse this tracker — fix the count pattern or the tracker format." >&2
-    exit 3
+  # Assertion (pipeline contract, guideline 1): a tracker that HAS items but
+  # yields zero checkboxes of any recognized kind means the counter cannot parse
+  # it — fail loudly rather than emit a misleading 0. A tracker with no items
+  # yet (a fresh skeleton: headings and empty tables) is a real zero, not a
+  # parse failure. An item is a table data row or a list line; a table's header
+  # row (the one right above its |---| separator) is not an item.
+  if [ "$((wt_open + wt_done))" -eq 0 ]; then
+    item_lines="$(python3 - "$WORK_TRACKER" <<'PY'
+import re, sys
+lines = open(sys.argv[1], encoding="utf-8", errors="replace").read().split("\n")
+sep = re.compile(r'^\s*\|?\s*:?-{2,}')
+n = 0
+for i, ln in enumerate(lines):
+    s = ln.strip()
+    if s.startswith("|"):
+        nxt = lines[i + 1].strip() if i + 1 < len(lines) else ""
+        if sep.match(s) or sep.match(nxt):
+            continue
+        n += 1
+    elif re.match(r'^[-*]\s+\S', s):
+        n += 1
+print(n)
+PY
+)"
+    if [ "${item_lines:-0}" -gt 0 ]; then
+      echo "gather.sh: work-tracker '$WORK_TRACKER' has $item_lines item line(s) but matched no todo checkboxes (expected markdown '- [ ]' or '<input type=\"checkbox\">'). Counter cannot parse this tracker — fix the count pattern or the tracker format." >&2
+      exit 3
+    fi
   fi
 else
   wt_open="unknown"; wt_done="unknown"
@@ -184,6 +238,7 @@ MANIFEST="$CACHE/manifest.txt"
   echo "session_days_with_activity: $session_days"
   echo "active_dates: ${active_dates:-none}"
   echo "worklog_dates_needed: ${worklog_needed:-none}"
+  echo "worklog_dates_stale: ${worklog_stale:-none}"
   echo "worklog_dates_existing: ${worklog_existing:-none}"
   echo "sessions_cache_glob: $CACHE/sessions-<date>.txt"
   echo "todo_candidates_file: $CAND"
@@ -238,5 +293,6 @@ echo "coverage_checklist: $COVERAGE"
 echo "active_threads_file: $THREADS"
 echo "sessions_with_activity: $session_days | todo_candidates: $cand_count | worktracker_open: $wt_open | active_threads: $thread_count"
 echo "worklog_dates_needed: ${worklog_needed:-none}"
-echo "STEP GATHER: $START..$END, ${session_days} active day(s), ${cand_count} candidates, worklog_needed=${worklog_needed:-none}, worktracker_open=${wt_open} · ${SECONDS}s · OK"
+echo "worklog_dates_stale: ${worklog_stale:-none}"
+echo "STEP GATHER: $START..$END, ${session_days} active day(s), ${cand_count} candidates, worklog_needed=${worklog_needed:-none}, stale=${worklog_stale:-none}, worktracker_open=${wt_open} · ${SECONDS}s · OK"
 echo "GATHER_OK"

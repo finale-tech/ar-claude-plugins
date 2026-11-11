@@ -79,19 +79,29 @@ else:
 NEXT_AT="${NEXT%%|*}"
 NEXT_CRON="${NEXT#*|}"
 
+# A Domain Sources value from status.md: the text after `<key>:`, without the
+# trailing " — explanation" the template carries. A value still holding its
+# `[placeholder]` counts as not set (same rule as `## You` in preflight.sh), so
+# an unfilled template line never reaches a skill as if it were a real path.
+source_value() {
+  local v
+  v="$({ grep -iE "^[[:space:]]*[-*]?[[:space:]]*$1:" "$STATUS" 2>/dev/null || true; } | head -1 | sed -E 's/^[^:]*:[[:space:]]*//; s/[[:space:]]+—.*$//; s/[[:space:]]+$//' | tr -d '\r')"
+  case "$v" in ''|\[*) return 0 ;; esac
+  printf '%s' "${v/#\~/$HOME}"
+}
+
 # work-tracker path from status.md -> Domain Sources -> work-tracker
 STATUS="$DOMAIN_PATH/advisor/status.md"
 WORK_TRACKER="NONE"
 if [ -f "$STATUS" ]; then
-  wt="$(grep -iE '^[[:space:]]*[-*]?[[:space:]]*work-tracker:' "$STATUS" 2>/dev/null | head -1 | sed -E 's/^[^:]*:[[:space:]]*//' | tr -d '\r')"
+  wt="$(source_value work-tracker)"
   if [ -n "$wt" ]; then WORK_TRACKER="$wt"; fi
 fi
 
 # tasks root (where background workers live) from status.md -> Domain Sources -> tasks-root
 TASKS_ROOT="NONE"
 if [ -f "$STATUS" ]; then
-  tr_="$(grep -iE '^[[:space:]]*[-*]?[[:space:]]*tasks-root:' "$STATUS" 2>/dev/null | head -1 | sed -E 's/^[^:]*:[[:space:]]*//' | tr -d '\r')"
-  tr_="${tr_/#\~/$HOME}"
+  tr_="$(source_value tasks-root)"
   if [ -n "$tr_" ]; then TASKS_ROOT="$tr_"; fi
 fi
 
@@ -152,8 +162,8 @@ fi
 if [ "$STATE_IS_TODAY" = "yes" ]; then THIS_CYCLE="$((CYCLE + 1))"; else THIS_CYCLE="1"; fi
 
 # How many lines of the tracker a cycle needs: the 🔴 table plus the top rows of the
-# 🗃️ Needs Prioritization (heading line + 12). The tracker is ~150 KB; a cycle
-# runs many times a day, so the PM reads only this slice, never the whole file.
+# 🗃️ Needs Prioritization (heading line + 12). The tracker grows without bound and
+# a cycle runs many times a day, so the PM reads only this slice, never the whole file.
 TRACKER_PLATE_LINES="60"
 if [ "$WORK_TRACKER" != "NONE" ] && [ -f "$WORK_TRACKER" ]; then
   np="$(awk '/Needs Prioritization/ { print NR; exit }' "$WORK_TRACKER")"

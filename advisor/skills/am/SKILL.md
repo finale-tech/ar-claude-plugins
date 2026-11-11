@@ -48,7 +48,7 @@ AM PROGRESS
 ### Step 0 — Preflight (fail-hard)
 
 Run: `bash ${CLAUDE_SKILL_DIR}/../../scripts/preflight.sh --require-fresh-tracker [<domain>]`
-`<domain>` is the value after `--domain` in the arguments, if one was given; otherwise pass no domain. `skip-sync` is a mode, never a domain: do not pass it to preflight. `--require-fresh-tracker` makes preflight exit non-zero when `session-log.md` has no `Sitrep` entry dated today — i.e. this morning's `sitrep` did not run — so the dependency is a deterministic gate, not a judgment call. Non-zero exit → STOP with stderr (its message names the fix). On success set `DOMAIN_PATH` from the `DOMAIN_PATH=` line and announce the domain.
+`<domain>` is the value after `--domain` in the arguments, if one was given; otherwise pass no domain. `skip-sync` is a mode, never a domain: do not pass it to preflight. `--require-fresh-tracker` makes preflight exit non-zero when `session-log.md` has no `Sitrep` entry dated today — i.e. this morning's `sitrep` did not run — so the dependency is a deterministic gate, not a judgment call. Non-zero exit → STOP with stderr (its message names the fix). On success set `DOMAIN_PATH` from the `DOMAIN_PATH=` line, keep `LIBRARY_PATH`, `ROLE_DAY` and `ROLE_WEEK` for Step 1, and announce the domain.
 
 ### Step 1 — Load context
 
@@ -60,9 +60,12 @@ Reference files:
 User files:
 4. `${DOMAIN_PATH}/advisor/commitments.md` — due today / overdue
 5. `${DOMAIN_PATH}/advisor/session-log.md` — last 2-3 entries
-6. `${DOMAIN_PATH}/playbook.md`
-7. `${DOMAIN_PATH}/operating-manual.md` — the Patterns section
-8. `${DOMAIN_PATH}/advisor/status.md` — the `work-tracker` path under Domain Sources, plus any Cross-Domain Relevance status files.
+6. `${DOMAIN_PATH}/playbook.md` — your context: what you know so far, the relationship map, and your calendar if it has one
+7. `${DOMAIN_PATH}/advisor/status.md` — the `work-tracker` path under Domain Sources, plus any Cross-Domain Relevance status files.
+
+The library (the general plan, read from the plugin; never copy it into the data folder):
+8. `${LIBRARY_PATH}/playbook.md` — the Senior-vs-Staff table and the plan section for `ROLE_WEEK` (if `ROLE_WEEK` is empty, the section named by `phase:` in `status.md`)
+9. Your active patterns, from your manual: `bash ${CLAUDE_SKILL_DIR}/../../scripts/library.sh mine ${DOMAIN_PATH} patterns --active`
 
 ### Step 2 — Read sitrep's facts (do not gather)
 
@@ -101,7 +104,7 @@ Follow `protocol.md` AM Phase 2, using the daily brief as the data source. **Two
 
 **Turn 1 — ask, then STOP.** Ask only the load-bearing questions: the ones whose answer would change an ordering or a recommendation (e.g. "CAR-004 says delivered but PROJ-123 is still open — which is right?"; "did the release cut today?"). Draw them from the **Commitment ↔ Jira Sync** section and any decision the day's ranking hinges on. Never re-ask a fact the sitrep already established. 3-5 sharp questions max. Then **stop and wait for the answers** — do NOT print the ranking, the wrap-up, or a "Start here" in this turn.
 
-**Turn 2 — conclude (only after the answers).** With the answers in hand: flag each artifact gap as the matching pattern from the Patterns section of `${DOMAIN_PATH}/operating-manual.md`, if one matches, or else as a last-mile delivery gap; apply the `${DOMAIN_PATH}/playbook.md` commitment filter (surface only untracked items mapping to a playbook dimension, 1-2 candidates); then produce the Phase-2 wrap-up from `protocol.md` — bulleted and linked: **🔴 Due today/soon**, **Unresolved from today's AM session**, **Active commitments**, and **🗃️ Needs Prioritization (7 to triage now)** each with a named decision + a **Start here** pick. No emotional check-in. If a load-bearing question went unanswered, tag each dependent pick "assumes <X>" rather than presenting it as settled.
+**Turn 2 — conclude (only after the answers).** With the answers in hand: flag each artifact gap as the matching one of your active patterns, or else as a last-mile delivery gap; apply the playbook commitment filter (surface only untracked items mapping to a dimension in the library playbook's table, 1-2 candidates); if `${DOMAIN_PATH}/playbook.md` holds a dated calendar, name any gate falling due within 7 days as a candidate too; then produce the Phase-2 wrap-up from `protocol.md` — bulleted and linked: **🔴 Due today/soon**, **Unresolved from today's AM session**, **Active commitments**, and **🗃️ Needs Prioritization (7 to triage now)** each with a named decision + a **Start here** pick. No emotional check-in. If a load-bearing question went unanswered, tag each dependent pick "assumes <X>" rather than presenting it as settled.
 
 After: **append** a session entry to `${DOMAIN_PATH}/advisor/session-log.md` and **update** `${DOMAIN_PATH}/advisor/commitments.md` for any status changes. Then keep the log bounded: `bash ${CLAUDE_SKILL_DIR}/../../scripts/rotate-log.sh ${DOMAIN_PATH}` (archives older entries; no-op once within the window — don't stop on its `ROTATE_OK` line).
 

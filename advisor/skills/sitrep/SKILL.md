@@ -98,9 +98,9 @@ Run as a single Bash call:
 
 ## Step 3 — Worklog narrative
 
-Write a worklog for **exactly** the dates in the manifest's `worklog_dates_needed` (active dates with no `worklog-<date>.md` yet, **plus today unconditionally** — today is never "closed" while the range runs through `NOW`, so `gather.sh` always re-includes it even if an earlier-today run already wrote one) — this is the closed worklist. Do not write worklogs for other dates and do not backfill dates outside the range: dates already covered are in `worklog_dates_existing`, and any out-of-range gap is noted in the summary as an anomaly, not chased here. If `worklog_dates_needed` is `none`, say so and continue.
+Write a worklog for **exactly** the dates in the manifest's `worklog_dates_needed` — this is the closed worklist. `gather.sh` lists three kinds of date: active dates with no `worklog-<date>.md` yet; **today unconditionally** (today is never "closed" while the range runs through `NOW`, so an earlier-today run's file is re-done); and a closed day whose existing worklog predates that day's last session (an afternoon run narrated it before the evening's sessions — these are also listed under `worklog_dates_stale`). Do not write worklogs for other dates and do not backfill dates outside the range: dates already covered are in `worklog_dates_existing`, and any out-of-range gap is noted in the summary as an anomaly, not chased here. If `worklog_dates_needed` is `none`, say so and continue.
 
-For each date in the list, read its `.cache/sessions-<date>.txt` **once** and write a narrative worklog to `${DOMAIN_PATH}/worklog-<date>.md` — for today, this **overwrites** any earlier-today version with the fuller day's narrative, not appends to it:
+For each date in the list, read its `.cache/sessions-<date>.txt` **once** and write a narrative worklog to `${DOMAIN_PATH}/worklog-<date>.md` — for today and for a stale date, this **overwrites** the earlier version with the full day's narrative, not appends to it:
 
 - A linear chronological narrative across all projects; bold the project name inline when it changes.
 - Group into time-of-day phases (e.g. "Morning (10:30-11:15) — Debugging auth flow").

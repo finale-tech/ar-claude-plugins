@@ -31,7 +31,7 @@ RETRO PROGRESS
 
 Run: `bash ${CLAUDE_SKILL_DIR}/../../scripts/preflight.sh [<domain>]`
 `<domain>` is the value after `--domain` in the arguments, if one was given; otherwise run it with no argument.
-Non-zero exit → STOP with stderr. On success set `DOMAIN_PATH` from the `DOMAIN_PATH=` line and announce the domain.
+Non-zero exit → STOP with stderr. On success set `DOMAIN_PATH` from the `DOMAIN_PATH=` line, keep `LIBRARY_PATH`, `ROLE_DAY` and `ROLE_WEEK`, and announce the domain.
 
 ### Step 1.1: Load advisor context
 
@@ -42,10 +42,14 @@ Non-zero exit → STOP with stderr. On success set `DOMAIN_PATH` from the `DOMAI
 
 3. `${DOMAIN_PATH}/advisor/commitments.md` — Full commitment audit
 4. `${DOMAIN_PATH}/advisor/session-log.md` — Read all entries from this week
-5. `${DOMAIN_PATH}/playbook.md` — Reflection protocol, recalibration signals, current week targets
-6. `${DOMAIN_PATH}/operating-manual.md` — Patterns for the week's review, Instincts to potentially add to, Daily Rules as the behavioral reference
-7. `${DOMAIN_PATH}/weekly-impact-log.md` — To update
-8. `${DOMAIN_PATH}/advisor/status.md` — To update; also check for cross-domain paths and read those status files
+5. `${DOMAIN_PATH}/playbook.md` — the user's context and, if it has one, their calendar
+6. `${DOMAIN_PATH}/weekly-impact-log.md` — To update
+7. `${DOMAIN_PATH}/advisor/status.md` — To update; also check for cross-domain paths and read those status files
+
+### Step 1.3: Load the library and the manual
+
+8. `${LIBRARY_PATH}/playbook.md` — reflection protocol, recalibration signals, the plan section for `ROLE_WEEK`, and the weekly cadence if it has one
+9. `bash ${CLAUDE_SKILL_DIR}/../../scripts/library.sh mine ${DOMAIN_PATH} all` — the user's manual by section: their patterns (active, later and mastered), their instincts with sources, their daily rules
 
 ## Step 2: Run the Retrospective Protocol
 
@@ -54,10 +58,11 @@ Follow the Weekly Retrospective protocol from `protocol.md` exactly. Guide the u
 1. **4-question reflection** (wait for input on each)
 2. **Plan vs. actual comparison**
 3. **Commitment audit** (close completed, flag overdue, flag 3+ slips)
-4. **Avoidance pattern review** across the week
-5. **Recalibration signal check** (if playbook has a recalibration table)
+4. **Avoidance pattern review** across the week — the user's list first, then anything new the week showed
+5. **Recalibration signal check** (the recalibration table in the library playbook)
 6. **Instinct candidate surfacing** — suggest new instincts based on the week
-7. **Plan next week** (top 3 priorities, commitment deadlines, relationship targets)
+7. **Weekly cadence** — if the library playbook has a weekly cadence, walk its checklist; if the library has an update template, draft the weekly update for the user to send
+8. **Plan next week** (top 3 priorities, commitment deadlines, relationship targets)
 
 ## Step 3: Update ALL Files
 
@@ -65,8 +70,10 @@ Follow the Weekly Retrospective protocol from `protocol.md` exactly. Guide the u
 2. **Update** `${DOMAIN_PATH}/advisor/commitments.md` — close completed, flag overdue, demote items that no longer pass the playbook filter, add new for next week (only items that pass the commitment filter: maps to playbook dimension + external accountability). Batch-promote from work tracker with user confirmation.
 3. **Update** `${DOMAIN_PATH}/advisor/status.md` — refresh the portable snapshot (the front matter and the sections above `## You`). Never change `## You`, Domain Sources, Repos or Slack Sources: those are the user's settings.
 4. **Append** weekly reflection to `${DOMAIN_PATH}/weekly-impact-log.md`
-5. **Append** to the Instincts section of `${DOMAIN_PATH}/operating-manual.md` if the user confirmed new instincts. Each one gets: the self-check question (bold, quotable), the replacement behavior ("Instead of X, an engineer should Y"), the reasoning (the failure mode it prevents), and the source (the situation that produced it)
-6. **Remove** a pattern from the Patterns section of `operating-manual.md` only if the user says they've mastered it
+5. **Append** to the Instincts section of `${DOMAIN_PATH}/operating-manual.md` if the user confirmed new instincts, each written in full: the self-check question (bold, quotable), the replacement behavior ("Instead of X, an engineer should Y"), the reasoning (the failure mode it prevents), and the `*Source:*` line — the situation that produced it
+6. **Add** a new pattern the week surfaced, if the user confirms, written in full: its name, `*Status: active*`, what it looks like, the tell, why it's dangerous, the counter, the detection questions, and an `**Instances:**` line
+7. **Set** a pattern's `*Status:*` to `mastered` only if the user says they've mastered it — `am` and `next` stop checking it, and the text stays
+8. **Check the manual**: `bash ${CLAUDE_SKILL_DIR}/../../scripts/library.sh check ${DOMAIN_PATH}`. Non-zero exit → fix the heading it names (an entry with no text) before finishing. Never write to the library from a session
 
 ## Behavior
 

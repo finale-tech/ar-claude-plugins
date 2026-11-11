@@ -22,17 +22,21 @@
 #   PERSON_NAME=<full name>                from `## You` in the domain's advisor/status.md
 #   PERSON_ALIASES=<a|b|c>                 names to match in transcripts and Slack (default: first name)
 #   SLACK_USER_ID=<id>   SLACK_USERNAME=<handle>   GITHUB_USERNAME=<login>
+#   LIBRARY_PATH=<absolute path>           the plugin's library/ folder (general text)
+#   ROLE_DAY=<int | empty>                 calendar days since `start_date:` in status.md, first day = 1
+#   ROLE_WEEK=<int | empty>                week of the role, counted from the Monday of the start week
 #   PREFLIGHT_OK
 # Exit non-zero with a specific reason on stderr otherwise.
 #
 # Path overrides (for testing) — env vars take precedence over the defaults:
-#   ADVISOR_HOME, ADVISOR_EXTRACT_SCRIPT, ADVISOR_TODOS_PROCESS
+#   ADVISOR_HOME, ADVISOR_EXTRACT_SCRIPT, ADVISOR_TODOS_PROCESS, ADVISOR_LIBRARY
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ADVISOR_HOME="${ADVISOR_HOME:-$HOME/.advisor}"
 EXTRACT_SCRIPT="${ADVISOR_EXTRACT_SCRIPT:-$SCRIPT_DIR/extract_sessions.py}"
 TODOS_PROCESS="${ADVISOR_TODOS_PROCESS:-$SCRIPT_DIR/../references/process.md}"
+LIBRARY="${ADVISOR_LIBRARY:-$SCRIPT_DIR/../library}"
 
 DOMAIN_ARG=""
 REQUIRE_FRESH_TRACKER=0
@@ -111,6 +115,42 @@ print("SLACK_USERNAME=%s" % val("slack_username"))
 print("GITHUB_USERNAME=%s" % val("github_username"))
 PY
 )"
+
+# Role clock: the playbook is indexed by week, so the week comes from a recorded
+# start date, never from a guess. `start_date:` sits in the front matter of
+# status.md. It is optional: blank, missing, or still a `[placeholder]` leaves
+# ROLE_DAY and ROLE_WEEK empty. A value that is not a date is an error.
+ROLE_OUT="$(python3 - "$STATUS" <<'PY'
+import datetime, re, sys
+path = sys.argv[1]
+text = open(path, encoding="utf-8").read()
+m = re.search(r'^start_date:[ \t]*(.*?)[ \t]*$', text, re.M)
+raw = m.group(1) if m else ""
+if not raw or raw.startswith("["):
+    print("ROLE_DAY="); print("ROLE_WEEK="); sys.exit(0)
+try:
+    start = datetime.date.fromisoformat(raw)
+except ValueError:
+    sys.stderr.write("PREFLIGHT FAILED: start_date in %s is '%s' — use YYYY-MM-DD, or leave it blank.\n" % (path, raw)); sys.exit(6)
+today = datetime.date.today()
+if today < start:
+    print("ROLE_DAY=0"); print("ROLE_WEEK=0"); sys.exit(0)
+week_one_monday = start - datetime.timedelta(days=start.weekday())
+print("ROLE_DAY=%d" % ((today - start).days + 1))
+print("ROLE_WEEK=%d" % ((today - week_one_monday).days // 7 + 1))
+PY
+)"
+
+# The domain's operating-manual.md holds every pattern, instinct and rule in
+# full. A heading there with no text of its own stops the run here rather than
+# letting a skill coach against a name with no text. library.sh prints the list
+# (it would also join a heading to a library entry of the same name, should the
+# library ever carry general manual entries again).
+[ -d "$LIBRARY" ] || {
+  echo "PREFLIGHT FAILED: library not found at $LIBRARY." >&2; exit 1; }
+LIBRARY_PATH="$(cd "$LIBRARY" && pwd)"
+ADVISOR_LIBRARY="$LIBRARY_PATH" bash "$SCRIPT_DIR/library.sh" check "$DOMAIN_PATH" >/dev/null || {
+  echo "PREFLIGHT FAILED: the domain's operating-manual.md has a heading with no text (list above)." >&2; exit 1; }
 
 # session-log paths — used by am's freshness gate below and by LAST_SESSION_DATE.
 LOG="$DOMAIN_PATH/advisor/session-log.md"
@@ -212,5 +252,7 @@ echo "NOW_EPOCH=$NOW_EPOCH"
 echo "WINDOW_START_EPOCH=$WINDOW_START_EPOCH"
 echo "WINDOW_START_DATE=$WINDOW_START_DATE"
 echo "$PERSON_OUT"
+echo "LIBRARY_PATH=$LIBRARY_PATH"
+echo "$ROLE_OUT"
 echo "STEP PREFLIGHT: domain=$(basename "$DOMAIN_PATH"), last_session=${LAST_SESSION_DATE:-none} · ${SECONDS}s · OK"
 echo "PREFLIGHT_OK"

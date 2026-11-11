@@ -8,7 +8,9 @@ disable-model-invocation: true
 
 A framework-based career coaching system that tracks commitments, keeps you on task, detects behavioral patterns, and holds you accountable. Your data lives in one private folder per domain, `~/.advisor/<name>/`, which `/advisor:create` sets up from the plugin's starter templates.
 
-Three layers, each doing one job: `sitrep` gathers the **facts**, `am` is the **coach**, `next` is the intraday **PM**. Every recommendation traces back to your specific situation, patterns, and commitments — never generic advice.
+Three layers, each doing one job: `sitrep` gathers the **facts**, `am` is the **coach**, `next` is the intraday **PM**. Every recommendation traces back to a named entry in the library or in your own files, applied to your specific situation, patterns, and commitments — never generic advice.
+
+Three parts hold it together: the **engine** (these commands), the **library** (the general plan, shipped with the plugin), and your **data folder** (everything about you).
 
 ## Workflow
 
@@ -26,9 +28,7 @@ Three layers, each doing one job: `sitrep` gathers the **facts**, `am` is the **
 
 **`/advisor:adhoc <situation>`** — bring a decision, a bad interaction, a draft message, a reaction. The advisor names the relevant framework and produces actionable output — a script, a plan, or "no action needed" with reasoning.
 
-**`/advisor:standup`** — a team-facing standup message (Yesterday / Today / Blockers) from your log, commitments, and tracker. Read-only.
-
-**`/advisor:worklog [date | yesterday]`** — write a narrative worklog for one day from your Claude Code sessions (sitrep does this automatically for the days it covers).
+**`/advisor:standup`** — a team-facing standup message (Yesterday / Today / Blockers) from yesterday's worklog, your log, commitments, and tracker. Read-only.
 
 ### Weekly
 
@@ -36,7 +36,7 @@ Three layers, each doing one job: `sitrep` gathers the **facts**, `am` is the **
 
 ### Read-only views
 
-**`/advisor:status`** — current portable snapshot. **`/advisor:commitments`** — what's due today / overdue / upcoming.
+**`/advisor:commitments`** — what's due today / overdue / upcoming.
 
 ## All Commands
 
@@ -54,8 +54,6 @@ Three layers, each doing one job: `sitrep` gathers the **facts**, `am` is the **
 /advisor:retro                   — Weekly retrospective
 /advisor:adhoc <situation>       — Event-driven coaching
 /advisor:standup                 — Team-facing standup message (read-only)
-/advisor:worklog [date]          — Narrative worklog for one day from your Claude Code sessions
-/advisor:status                  — Current snapshot (read-only)
 /advisor:commitments             — What's due and overdue (read-only)
 ```
 
@@ -63,9 +61,13 @@ Three layers, each doing one job: `sitrep` gathers the **facts**, `am` is the **
 
 Each domain is one private folder, `~/.advisor/<name>/`. With a single domain every skill finds it on its own; with more than one, pass `--domain <name>`.
 
+**The library** (in the plugin, shared by every domain, updated with the plugin):
+- `library/playbook.md` — the general plan: the gap to close, the week-by-week plan, reflection and recalibration
+- Skills read it through `scripts/library.sh`: `index` lists every section in one line, `show "<name>"` prints one in full. It is never copied into your folder. The same script's `mine` prints your own manual by section (`patterns --active` for the ones being checked).
+
 **Your files:**
-- `playbook.md` — your goal, the gap to close, and the execution plan (fill in "What You Know So Far" as you learn)
-- `operating-manual.md` — how you operate: Patterns (what the advisor watches for), Instincts (self-check questions), Daily Rules. Delete a pattern once you've mastered it
+- `playbook.md` — your context for the plan: "What You Know So Far" (fill it in as you learn) and your relationship map
+- `operating-manual.md` — your whole manual, every entry written in full: the patterns you are working on (`*Status: active*`, `later`, or `mastered` once you've beaten one — `am` and `next` check the active ones), your instincts with their `*Source:*` story, and your daily rules and don'ts. Every skill stops if a heading here carries no text
 - `weekly-impact-log.md` — cumulative impact tracker
 - `worklog-YYYY-MM-DD.md` — daily activity narrative (written by `sitrep`)
 
@@ -75,14 +77,14 @@ Each domain is one private folder, `~/.advisor/<name>/`. With a single domain ev
 **Advisor-managed files** (in `advisor/`):
 - `commitments.md` — formal commitment tracker with IDs, due dates, slip counts
 - `session-log.md` — session history + deliberation record (append-only, rotated)
-- `status.md` — portable snapshot, plus everything you set once: `## You` (who you are), Domain Sources (`work-tracker`, `meeting-transcripts`, `tasks-root`), `## Repos` (one `owner/repo` per line), Slack Sources
+- `status.md` — portable snapshot, plus everything you set once: `start_date` (your first day in the role, so the advisor knows which week you are in), `## You` (who you are), Domain Sources (`work-tracker`, `meeting-transcripts`, `tasks-root`, `knowledge`), `## Repos` (one `owner/repo` per line), Slack Sources
 - `daily-brief-YYYY-MM-DD.md` — `am`'s coaching brief (opinion layer over the facts)
 - `.cache/next-state.md` — `next` loop bookkeeping (loop on/off, timer id, active-3 with worker ids, pending suggestion, notified)
 
 ## Getting Started
 
 1. Run `/advisor:create <name>`. It creates `~/.advisor/<name>/` from the starter templates and asks for your name and Slack/GitHub IDs.
-2. Fill in `advisor/status.md` → Domain Sources, Repos and Slack Sources.
+2. Fill in `advisor/status.md` → `start_date`, Domain Sources, Repos and Slack Sources. The work tracker is already scaffolded as `work-tracker.md` in your folder; point `work-tracker` elsewhere if you keep one already.
 3. Each morning: `/advisor:sitrep` then `/advisor:am`.
 4. Through the day: say yes when `am` offers the loop (or run `/advisor:next start`). For check-ins that run without you at the keyboard, add the allow rules in `references/protocol.md` → "Unattended setup".
 5. Weekly: `/advisor:retro`.

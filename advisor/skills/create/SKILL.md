@@ -8,7 +8,7 @@ allowed-tools: Read Edit Bash(bash *)
 
 # Create an Advisor Domain
 
-Sets up the private data folder `~/.advisor/<name>/` from the plugin's starter templates (`templates/` next to this file). Nothing is generated: the templates are copied as they are, with the domain name and today's date filled in.
+Sets up the private data folder `~/.advisor/<name>/` from the plugin's starter templates (`templates/` next to this file). Nothing is generated: the templates are copied as they are, with the domain name, today's date and the folder's own path filled in. The templates are blank forms; the general plan stays in the plugin's `library/` and is never copied.
 
 ## Step 1: Name the domain
 
@@ -36,6 +36,6 @@ Then run `bash ${CLAUDE_SKILL_DIR}/../../scripts/preflight.sh <name>`. It must e
 
 ## Step 4: Say what's left
 
-> Domain `<name>` is ready at `<DOMAIN_PATH>`. Before the first `/advisor:sitrep`, fill in `advisor/status.md` → Domain Sources, Repos and Slack Sources. Fill in `playbook.md` → "What You Know So Far" as you learn it. `operating-manual.md` starts empty: add your own patterns, instincts and daily rules — the advisor coaches against what's there.
+> Domain `<name>` is ready at `<DOMAIN_PATH>`. Before the first `/advisor:sitrep`, fill in `advisor/status.md` → Domain Sources, Repos and Slack Sources, and set `start_date` there if you want the advisor to know which week of the role you are in. Fill in `playbook.md` → "What You Know So Far" as you learn it. The plan comes from the plugin's library. `operating-manual.md` starts empty and is all yours: write the patterns you are working on, your instincts and your own rules in full; `retro` adds to it as the weeks go by.
 
 $ARGUMENTS

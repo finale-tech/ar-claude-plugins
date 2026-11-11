@@ -125,11 +125,11 @@ If no worklog exists for yesterday, note "worklog not available — coverage may
 The AM accountability and priority-setting flow, reading from the daily brief. **Ask before concluding: the questions (step 1) and the wrap-up (step 4) are two separate turns with a hard gate between them — never produce both in one pass.**
 
 1. **Ask the load-bearing questions, then STOP.** Work through yesterday's commitments and key items, asking only the questions whose answer would change an ordering or a recommendation — use the Commitment <> Jira Sync section for concrete data (e.g., "CAR-004 says delivered but PROJ-123 is still open — which is right?"), plus any decision the day's ranking hinges on. Never re-ask a fact the sitrep already established. Specific yes/no or short-answer, 3-5 max. Then **wait for the answers** — do not print the ranking, wrap-up, or "Start here" yet.
-   - On slips: check against the Patterns section of `./operating-manual.md` and name the pattern if one matches.
-   - Flag an artifact gap as the matching pattern from the Patterns section, if one matches, or else as a last-mile delivery gap.
+   - On slips: check against the user's active patterns (`library.sh mine <DOMAIN_PATH> patterns --active`) and name the pattern if one matches.
+   - Flag an artifact gap as the matching one of the user's active patterns, or else as a last-mile delivery gap.
 2. **Log brief signals** from the answers.
-3. **Surface untracked work (playbook-filtered):** Same filter as before (maps to playbook dimension + external accountability). Now also surfaces artifact gaps as commitment candidates.
-4. **Output (only after the step-1 answers):** the end-of-session wrap-up (format below) — bulleted and linked, with the 🗃️ Needs Prioritization section triaging 7 items to a named decision. If a load-bearing question went unanswered, tag each dependent pick "assumes <X>" rather than presenting it as settled. Quick-win artifact gaps can be flagged inline as candidates. Weave any relevant Daily Rules principle from `./operating-manual.md` into the interactive discussion rather than the wrap-up.
+3. **Surface untracked work (playbook-filtered):** Same filter as before (maps to playbook dimension + external accountability). Now also surfaces artifact gaps as commitment candidates. If `./playbook.md` holds a dated calendar, a gate falling due within 7 days is a candidate too.
+4. **Output (only after the step-1 answers):** the end-of-session wrap-up (format below) — bulleted and linked, with the 🗃️ Needs Prioritization section triaging 7 items to a named decision. If a load-bearing question went unanswered, tag each dependent pick "assumes <X>" rather than presenting it as settled. Quick-win artifact gaps can be flagged inline as candidates. Weave any relevant Daily Rules principle from `./operating-manual.md` (`library.sh mine <DOMAIN_PATH> rules`) into the interactive discussion rather than the wrap-up.
 5. **Append entry to `./advisor/session-log.md`**
 6. **Update `./advisor/commitments.md`** if any statuses changed.
 
@@ -201,7 +201,7 @@ The tactical PM layer between `am` runs. `next` is a **thin PM**: each check-in 
 
 A timer-fired check-in runs as a system prompt, so the skill's own `allowed-tools` pre-approval does **not** cover it. Without allow rules each fire stalls on a permission prompt (live test: the PM blocked on its first `bash …/preflight.sh`). A stalled session shows as `waitingFor=permission prompt` in the snapshot; the user clears it with `claude attach <id>`. To run unattended, add to `permissions.allow` in `settings.json` the following, plus the Slack, Jira and `gh pr` reads the scan uses if your settings don't already allow them:
 
-- `Bash(bash <advisor plugin dir>/skills/*/../../scripts/<script>*)` for each of `preflight.sh`, `next-context.sh`, `validate.sh`, `append-log.sh`, `rotate-log.sh`. Write the path in the form the skills actually issue: `${CLAUDE_SKILL_DIR}` is substituted as text, so the command keeps its `skills/<skill>/../../scripts/` segment (live test), and a rule written against the normalized `<plugin dir>/scripts/…` path will likely not match it.
+- `Bash(bash <advisor plugin dir>/skills/*/../../scripts/<script>*)` for each of `preflight.sh`, `next-context.sh`, `library.sh`, `validate.sh`, `append-log.sh`, `rotate-log.sh`. Write the path in the form the skills actually issue: `${CLAUDE_SKILL_DIR}` is substituted as text, so the command keeps its `skills/<skill>/../../scripts/` segment (live test), and a rule written against the normalized `<plugin dir>/scripts/…` path will likely not match it.
 - `Skill(advisor:sitrep)` — the scan subagent
 - `Skill(advisor:next)` — the timer-fired check-in. In an interactive session the timer's `/advisor:next` arrives as plain text, not an expanded command (two live observations), so the model loads the skill through the Skill tool; `next` is therefore not `disable-model-invocation`, and its description restricts it to an exact `/advisor:next` prompt.
 
@@ -232,7 +232,7 @@ Never use `claude logs` as a status source — it is a terminal screen scrape, n
 4. **Due today.**
 5. **Stale >3 days needing a nudge.**
 
-Within a tier, smallest effort-to-ship first — clear the 2-minute loops before the multi-hour ones. Give origination items (work the user starts, not tickets they're handed) a visibility bump so pure-execution work never buries them for more than a day. One drift line per cycle, mapped to a pattern in the Patterns section of `operating-manual.md`.
+Within a tier, smallest effort-to-ship first — clear the 2-minute loops before the multi-hour ones. Give origination items (work the user starts, not tickets they're handed) a visibility bump so pure-execution work never buries them for more than a day. One drift line per cycle, mapped to one of the user's active patterns (`library.sh mine <DOMAIN_PATH> patterns --active`).
 
 ### `.cache/next-state.md` — loop bookkeeping (not the tracker)
 
@@ -308,12 +308,12 @@ Ask for the code repo once per task and remember it (`--add-dir`). The PM never 
 ### Protocol
 
 1. **Listen first.** Let the user describe the situation fully before responding.
-2. **Identify the relevant framework:**
-   - Workplace/interpersonal interaction → `./operating-manual.md` → Daily Rules and Instincts
-   - Strategic/career decision → `./playbook.md` strategy and recalibration signals
-   - Emotional reaction → `./operating-manual.md` → whatever Daily Rules and Instincts cover reactions
-   - Behavioral pattern → `./operating-manual.md` → Patterns
-3. **Apply the framework explicitly:** Name which framework applies and why. If the manual doesn't cover the situation, say so — never invent a rule and attribute it to the manual.
+2. **Identify the relevant framework.** Find it in the user's `./operating-manual.md` (`library.sh mine <DOMAIN_PATH> all` prints it by section) or in the library `playbook.md` (`library.sh index`, then `library.sh show "<name>"`):
+   - Workplace/interpersonal interaction → Daily Rules and Instincts
+   - Strategic/career decision → the library `playbook.md` (strategy, recalibration signals), with the user's context from `./playbook.md`
+   - Emotional reaction → whatever Daily Rules and Instincts cover reactions
+   - Behavioral pattern → Patterns
+3. **Apply the framework explicitly:** Name which framework applies and why. If neither the library nor the user's manual covers the situation, say so — never invent a rule and attribute it to either.
 4. **Check for emotional weight:** if the user is reacting to someone, apply what the manual says about reactions, if it says anything.
 5. **Output:** Specific response script or action plan (not generic advice).
 6. **Log any new commitments** in `./advisor/commitments.md`. Before creating, apply the commitment filter: does this map to a playbook dimension AND carry external accountability or credibility cost? If it doesn't pass, it stays in the work tracker only. Always confirm with the user.
@@ -343,7 +343,7 @@ Ask for the code repo once per task and remember it (`--add-dir`). The PM never 
    Wait for the user's input on each question before proceeding.
 
 2. **Plan vs. Actual comparison:**
-   - Read this week's targets from `./playbook.md`
+   - Read this week's targets from the library `playbook.md` (the section for `ROLE_WEEK` from preflight) and from the calendar in `./playbook.md`, if it has one
    - Compare against `./advisor/session-log.md` entries for the week
    - Quantify where possible: outputs delivered, commitments completed vs. slipped
 
@@ -361,10 +361,11 @@ Ask for the code repo once per task and remember it (`--add-dir`). The PM never 
 5. **Avoidance pattern review:**
    - Review the week's session logs for any patterns flagged
    - Are patterns recurring, improving, or new?
-   - Check against the Patterns section of `./operating-manual.md`
-   - If the user says they've mastered a pattern, remove it from the manual
+   - Check against the user's patterns (`library.sh mine <DOMAIN_PATH> patterns`)
+   - A new pattern the week showed: propose adding it to `./operating-manual.md` in full — its name, `*Status: active*`, what it looks like, the tell, why it's dangerous, the counter, the detection questions, and the instance. The user confirms
+   - If the user says they've mastered a pattern, set its `*Status:*` to `mastered` in `./operating-manual.md` — `am` and `next` stop checking it, and the text stays
 
-6. **Recalibration signal check** (if `./playbook.md` has a recalibration table):
+6. **Recalibration signal check** (the recalibration table in the library `playbook.md`):
    - Assess each signal dimension: ahead / on track / behind
 
 7. **Update `./advisor/status.md`:**
@@ -372,9 +373,13 @@ Ask for the code repo once per task and remember it (`--add-dir`). The PM never 
    - Update emotional state, energy/confidence trend
    - Update cross-domain relevance section
 
-8. **Instinct candidate surfacing** — review the week's patterns and interactions. Suggest any new instincts worth adding to the Instincts section of `./operating-manual.md`. User confirms.
+8. **Instinct candidate surfacing** — review the week's patterns and interactions. Suggest any new instincts worth adding to the Instincts section of `./operating-manual.md`, each written there in full: the self-check question, the replacement behavior, the reasoning, and their `*Source:*`. User confirms.
 
-9. **Plan next week:**
+9. **Weekly cadence** (only if the library has one):
+   - If the library `playbook.md` has a weekly cadence section, walk its checklist
+   - If the library has an update template (`library.sh index templates`), draft the weekly update from it. Draft only — the user sends it
+
+10. **Plan next week:**
    - Top 3 priorities
    - Any commitments with specific deadlines
    - Relationship targets (who to connect with)

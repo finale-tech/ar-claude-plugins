@@ -6,7 +6,8 @@
 #
 # Builds ${ADVISOR_HOME:-$HOME/.advisor}/<name>/ by copying skills/create/templates/
 # and filling in {{DOMAIN}}, {{PREFIX}} (first 3 letters of the name, uppercased:
-# the commitment-ID prefix), {{TODAY}} and {{DOW}}. Refuses if the folder already
+# the commitment-ID prefix), {{TODAY}}, {{DOW}} and {{DOMAIN_PATH}} (the new
+# folder's own path, so the starter work tracker can be referenced by path). Refuses if the folder already
 # exists — it never overwrites data. The copy is built in a temp folder and moved
 # into place only when complete, so a failure never leaves a half-built domain.
 #
@@ -46,10 +47,10 @@ find "$TMP" -name '.DS_Store' -type f -delete
 
 # Fill placeholders with python3 (already required by preflight.sh) rather than
 # `sed -i`, whose flags differ between macOS and Linux.
-python3 - "$TMP" "$NAME" "$PREFIX" "$TODAY" "$DOW" <<'PY'
+python3 - "$TMP" "$NAME" "$PREFIX" "$TODAY" "$DOW" "$DEST" <<'PY'
 import os, sys
-root, name, prefix, today, dow = sys.argv[1:]
-subs = {"{{DOMAIN}}": name, "{{PREFIX}}": prefix, "{{TODAY}}": today, "{{DOW}}": dow}
+root, name, prefix, today, dow, dest = sys.argv[1:]
+subs = {"{{DOMAIN_PATH}}": dest, "{{DOMAIN}}": name, "{{PREFIX}}": prefix, "{{TODAY}}": today, "{{DOW}}": dow}
 for d, _, files in os.walk(root):
     for fn in files:
         p = os.path.join(d, fn)

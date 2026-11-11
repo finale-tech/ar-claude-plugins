@@ -127,6 +127,12 @@ All items use one-line format:
 - [ ] **Title** | YYYY-MM-DDTHH:MMZ | [Source](url)
 ```
 
+Inside the tracker's tables (`## Open Items` → 🔴 Overdue / Due-soon and 🗃️ Needs Prioritization, columns `Due | Task | Context / who's waiting | Logged | Link`) the same item is one row, and its Task cell starts with a checkbox, because a Markdown `- [ ]` cannot sit in a table cell:
+```
+| <due or -> | <input type="checkbox"> **Title** | <context> | YYYY-MM-DDTHH:MMZ | [Source](url) |
+```
+`gather.sh` counts open items by these checkboxes and stops the run on a tracker that has rows but no checkbox on them. A resolved item moves to the `## Resolved` table (`Resolved | Task | Note | Link`).
+
 If context won't fit in the title, create a detail file at:
 - PR items → `tasks/pr_reviews/pr_<NUMBER>_review.md`
 - Non-PR items → `tasks/<slug>.md`
