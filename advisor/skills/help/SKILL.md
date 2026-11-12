@@ -43,7 +43,7 @@ Three parts hold it together: the **engine** (these commands), the **library** (
 ```
 /advisor:help                    — This overview
                                    All commands accept --domain <name> when you have more than one domain
-/advisor:create <name>           — Set up a domain in ~/.advisor/<name>/: scaffold it from the starter templates, or adopt a folder already there
+/advisor:create <name>           — Set up a new domain in ~/.advisor/<name>/ from the starter templates (and your own operating manual, if you have one)
 /advisor:sitrep                  — Situational report (facts since last time). Full mode.
 /advisor:sitrep --since <ISO>    — Windowed light scan (used by /advisor:next; also --hour / --today)
 /advisor:am                      — Daily coaching over sitrep's facts (accountability, urgency, Jira drafts, priorities)
@@ -83,7 +83,7 @@ Each domain is one private folder, `~/.advisor/<name>/`. With a single domain ev
 
 ## Getting Started
 
-1. Run `/advisor:create <name>`. It creates `~/.advisor/<name>/` from the starter templates, or adopts a folder you already placed there (nothing overwritten, missing files added), and asks for your name, Slack/GitHub IDs and your start date in the role — only the ones still unset.
+1. Run `/advisor:create <name>`. It creates `~/.advisor/<name>/` from the starter templates and asks for your name, Slack/GitHub IDs and your start date in the role. If you already have an operating manual (your patterns, instincts and daily rules), give its path when asked and it is copied in; otherwise the manual starts empty. A domain is created once: if the folder already exists, create stops and changes nothing.
 2. Fill in `advisor/status.md` → Domain Sources, Repos and Slack Sources. The work tracker is already scaffolded as `work-tracker.md` in your folder; point `work-tracker` elsewhere if you keep one already.
 3. Each morning: `/advisor:sitrep` then `/advisor:am`.
 4. Through the day: say yes when `am` offers the loop (or run `/advisor:next start`). For check-ins that run without you at the keyboard, add the allow rules in `references/protocol.md` → "Unattended setup".

@@ -29,7 +29,9 @@
 # paragraph that starts with a bold rule ID (**R-ABC-1. ...**). Headings inside
 # fenced code blocks are ignored. Names are unique across the whole library.
 #
-# Stdout on success ends with LIBRARY_OK (check) or LINT_OK (lint).
+# Stdout on success ends with LIBRARY_OK (check) or LINT_OK (lint). The LIBRARY_OK
+# line also counts the manual's entries by section (patterns= instincts= rules=),
+# which create-domain.sh reads to report what a manual it was given holds.
 # Exit non-zero with "LIBRARY FAILED: <reason>" on stderr otherwise.
 #
 # Env override (for testing): ADVISOR_LIBRARY
@@ -251,6 +253,7 @@ def cmd_check(args):
     problems = ["duplicate name in the library: %s" % d for d in dupes]
     path, nodes = manual(args[0])
     overlays = full = local = 0
+    per_section = dict.fromkeys(SECTION_TYPE, 0)
     seen = {}
     for n in user_entries(nodes):
         if n["title"] in seen:
@@ -258,6 +261,8 @@ def cmd_check(args):
             continue
         seen[n["title"]] = True
         kind = classify(n, by_name)
+        if kind in ("overlay", "full", "local"):
+            per_section[n["h2"]] += 1
         if kind == "overlay":
             overlays += 1
         elif kind == "full":
@@ -274,8 +279,10 @@ def cmd_check(args):
         sys.exit(1)
     print("STEP LIBRARY-CHECK: %d library entries, %d overlays, %d full copies, %d local · OK" % (
         len(entries), overlays, full, local))
-    print("LIBRARY_OK library_entries=%d overlays=%d full_copies=%d local=%d" % (
-        len(entries), overlays, full, local))
+    print("LIBRARY_OK library_entries=%d overlays=%d full_copies=%d local=%d "
+          "patterns=%d instincts=%d rules=%d" % (
+              len(entries), overlays, full, local,
+              per_section["Patterns"], per_section["Instincts"], per_section["Daily Rules"]))
 
 
 def cmd_mine(args):
